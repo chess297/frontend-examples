@@ -1,0 +1,35 @@
+{
+  "name": "turbo-nextjs-example",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prune": "turbo prune spiritchess.cn --docker",
+    "check-types": "turbo run check-types"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.17",
+    "daisyui": "^5.0.9",
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4.0.17",
+    "turbo": "^2.4.4",
+    "typescript": "5.8.2"
+  },
+  "packageManager": "pnpm@10.7.1",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.6.2",
+    "use-debounce": "^10.0.4",
+    "@heroui/react": "^2.7.5",
+    "@iconify/react": "^5.2.0",
+    "next": "15.2.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
