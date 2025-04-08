@@ -1,9 +1,9 @@
 services:
   web:
-    container_name: spiritchess.cn
+    container_name: web
     build:
       context: .
-      dockerfile: ./apps/spiritchess.cn/Dockerfile
+      dockerfile: ./apps/web/Dockerfile
     restart: always
     ports:
       - 3000:3000

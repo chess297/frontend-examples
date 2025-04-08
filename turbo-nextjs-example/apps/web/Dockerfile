@@ -11,7 +11,7 @@ FROM base AS builder
 WORKDIR /app
 RUN npm install -g turbo
 COPY . .
-RUN turbo prune spiritchess.cn --docker
+RUN turbo prune web --docker
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -47,8 +47,8 @@ USER nextjs
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=installer --chown=nextjs:nodejs /app/apps/spiritchess.cn/.next/standalone ./
-COPY --from=installer --chown=nextjs:nodejs /app/apps/spiritchess.cn/.next/static ./apps/spiritchess.cn/.next/static
-COPY --from=installer --chown=nextjs:nodejs /app/apps/spiritchess.cn/public ./apps/spiritchess.cn/public
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
-CMD node apps/spiritchess.cn/server.js
+CMD node apps/web/server.js
