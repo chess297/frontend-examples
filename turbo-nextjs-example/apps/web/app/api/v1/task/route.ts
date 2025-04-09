@@ -29,18 +29,3 @@ export async function DELETE(req: Request) {
   });
   return Response.json({ message: "success" });
 }
-
-export async function PUT(req: Request) {
-  const { id, completed } = await req.json();
-
-  await prisma.tasks.update({
-    where: {
-      task_id: id,
-    },
-    data: {
-      completed,
-    },
-  });
-
-  return Response.json({ message: "success" });
-}

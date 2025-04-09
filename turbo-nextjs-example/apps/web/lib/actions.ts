@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 const BASE_URL = "http://localhost:3000/api/v1";
 export async function fetchTodoList() {
   // await new Promise((resolve) => setTimeout(resolve, 1000));
-  const list = await fetch(`${BASE_URL}/todo-list`)
+  const list = await fetch(`${BASE_URL}/task`)
     .then((res) => res.json())
     .then((data) => {
       return data.data;
@@ -15,7 +15,7 @@ export async function fetchTodoList() {
 }
 
 export async function createTask(name: string) {
-  await fetch(`${BASE_URL}/todo-list`, {
+  await fetch(`${BASE_URL}/task`, {
     method: "POST",
     body: JSON.stringify({
       name,
@@ -25,7 +25,7 @@ export async function createTask(name: string) {
 }
 
 export async function deleteTask(id: string) {
-  await fetch(`${BASE_URL}/todo-list`, {
+  await fetch(`${BASE_URL}/task`, {
     method: "DELETE",
     body: JSON.stringify({
       id,
@@ -35,12 +35,17 @@ export async function deleteTask(id: string) {
 }
 
 export async function updateTask(id: string, completed: boolean) {
-  await fetch(`${BASE_URL}/todo-list`, {
-    method: "PUT",
+  await fetch(`${BASE_URL}/task/${id}`, {
+    method: "PATCH",
     body: JSON.stringify({
-      id,
       completed,
     }),
-  });
+  })
+    .then(() => {
+      console.log("success");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   revalidatePath("/todo-list");
 }
