@@ -1,7 +1,7 @@
 import { fetchTodoList } from "@/lib/actions";
-import type { TaskModel } from "@/types/task";
 import Task from "./task";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Prisma } from "@/generated/prisma";
 
 export function LoadingTaskList() {
   return (
@@ -25,7 +25,7 @@ export function LoadingTaskList() {
   );
 }
 const TaskList = async () => {
-  const tasks: TaskModel[] = await fetchTodoList();
+  const tasks: Prisma.TasksGroupByOutputType[] = await fetchTodoList();
 
   return (
     <ul className="flex flex-col max-h-80 overflow-scroll md:w-80">

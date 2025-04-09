@@ -2,8 +2,8 @@
 import { revalidatePath } from "next/cache";
 const BASE_URL = "http://localhost:3000/api/v1";
 export async function fetchTodoList() {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return await fetch(`${BASE_URL}/todo-list`)
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+  const list = await fetch(`${BASE_URL}/todo-list`)
     .then((res) => res.json())
     .then((data) => {
       return data.data;
@@ -11,6 +11,7 @@ export async function fetchTodoList() {
     .catch(() => {
       return [];
     });
+  return list;
 }
 
 export async function createTask(name: string) {
@@ -18,7 +19,6 @@ export async function createTask(name: string) {
     method: "POST",
     body: JSON.stringify({
       name,
-      isDone: false,
     }),
   });
   revalidatePath("/todo-list");
@@ -34,12 +34,12 @@ export async function deleteTask(id: string) {
   revalidatePath("/todo-list");
 }
 
-export async function updateTask(id: string, isDone: boolean) {
+export async function updateTask(id: string, completed: boolean) {
   await fetch(`${BASE_URL}/todo-list`, {
     method: "PUT",
     body: JSON.stringify({
       id,
-      isDone,
+      completed,
     }),
   });
   revalidatePath("/todo-list");

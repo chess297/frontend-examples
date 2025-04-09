@@ -1,57 +1,46 @@
-import { TaskModel } from "@/types/task";
+import { prisma } from "@/lib/db";
 import { v4 as uuid } from "uuid";
 
-const tasks: TaskModel[] = [
-  {
-    id: uuid(),
-    name: "Learn React",
-    isDone: false,
-  },
-  {
-    id: uuid(),
-    name: "Learn TypeScript",
-    isDone: false,
-  },
-  {
-    id: uuid(),
-    name: "Learn Next.js",
-    isDone: true,
-  },
-  {
-    id: uuid(),
-    name: "Learn Tailwind CSS",
-    isDone: false,
-  },
-  {
-    id: uuid(),
-    name: "Learn React Router",
-    isDone: false,
-  },
-];
 export async function GET() {
+  const tasks = await prisma.tasks.findMany();
   return Response.json({ message: "Hello, Next.js!", data: tasks });
 }
 
 export async function POST(req: Request) {
   const { name } = await req.json();
-  tasks.unshift({
-    id: uuid(),
-    name: name,
-    isDone: false,
+  const taskId = uuid();
+  const task = await prisma.tasks.create({
+    data: {
+      task_id: taskId,
+      title: name,
+      completed: false,
+    },
   });
-  return Response.json({ message: "success" });
+
+  return Response.json({ message: "success", data: task });
 }
 
 export async function DELETE(req: Request) {
   const { id } = await req.json();
-  const index = tasks.findIndex((task) => task.id === id);
-  tasks.splice(index, 1);
+  await prisma.tasks.delete({
+    where: {
+      task_id: id,
+    },
+  });
   return Response.json({ message: "success" });
 }
 
 export async function PUT(req: Request) {
-  const { id, isDone } = await req.json();
-  const index = tasks.findIndex((task) => task.id === id);
-  tasks[index].isDone = isDone;
+  const { id, completed } = await req.json();
+
+  await prisma.tasks.update({
+    where: {
+      task_id: id,
+    },
+    data: {
+      completed,
+    },
+  });
+
   return Response.json({ message: "success" });
 }
