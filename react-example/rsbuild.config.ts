@@ -1,5 +1,6 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
+import fs from "node:fs";
 
 export default defineConfig({
   html: {
@@ -12,11 +13,20 @@ export default defineConfig({
     },
   },
   server: {
+    host: "spiritchess.cn",
     port: 3001,
+    open: true,
+    https: {
+      key: fs.readFileSync("certificates/spiritchess.cn.key"),
+      cert: fs.readFileSync("certificates/spiritchess.cn.pem"),
+    },
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "http://spiritchess.cn:3000",
         changeOrigin: true,
+        cookieDomainRewrite: {
+          "*": "localhost",
+        },
       },
     },
   },

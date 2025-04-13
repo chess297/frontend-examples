@@ -12,41 +12,25 @@
 
 export type CreateTaskRequest = object;
 
+export interface TaskModel {
+  title: string;
+  description: string;
+  completed: boolean;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  id: string;
+}
+
 export interface FindTaskResponse {
-  records: string[];
+  /** 任务列表 */
+  records: TaskModel[];
   total: number;
   message: string;
 }
 
 export type UpdateTaskRequest = object;
-
-export interface ApiErrRes {
-  /** 状态码 */
-  code: number;
-  /** 状态信息 */
-  message: string;
-  /** 错误详细 */
-  err: string;
-}
-
-export interface ApiOkRes {
-  /**
-   * 状态码
-   * @default 200
-   */
-  code: number;
-  /**
-   * 状态信息
-   * @default "成功"
-   */
-  message: string;
-  /** 数据 */
-  data: object;
-}
-
-export interface SignupResponse {
-  id: string;
-}
 
 export interface SignupRequest {
   name: string;
@@ -54,13 +38,17 @@ export interface SignupRequest {
   password: string;
 }
 
-export interface SigninResponse {
-  accessToken: string;
+export interface SignupResponse {
+  id: string;
 }
 
 export interface SigninRequest {
-  name: string;
+  email: string;
   password: string;
+}
+
+export interface SigninResponse {
+  access_token: string;
 }
 
 export interface CreateUserRequest {
@@ -77,9 +65,9 @@ export interface RemoveUserRequest {
 }
 
 export interface UpdateProfileRequest {
-  userId?: string;
+  user_id?: string;
   phone?: string;
-  countryCode?: string;
+  country_code?: string;
   address?: string;
 }
 
@@ -374,20 +362,7 @@ export class Api<
      * @request POST:/api/v1/auth/signup
      */
     authControllerSignupV1: (data: SignupRequest, params: RequestParams = {}) =>
-      this.request<
-        ApiOkRes & {
-          /** @default null */
-          data?: SignupResponse;
-        },
-        ApiErrRes & {
-          /** @default 400 */
-          code?: any;
-          /** @default "请求错误" */
-          message?: any;
-          /** @default null */
-          err?: any;
-        }
-      >({
+      this.request<SignupResponse, any>({
         path: `/api/v1/auth/signup`,
         method: "POST",
         body: data,
@@ -405,20 +380,7 @@ export class Api<
      * @request POST:/api/v1/auth/signin
      */
     authControllerSigninV1: (data: SigninRequest, params: RequestParams = {}) =>
-      this.request<
-        ApiOkRes & {
-          /** @default null */
-          data?: SigninResponse;
-        },
-        ApiErrRes & {
-          /** @default 400 */
-          code?: any;
-          /** @default "请求错误" */
-          message?: any;
-          /** @default null */
-          err?: any;
-        }
-      >({
+      this.request<SigninResponse, any>({
         path: `/api/v1/auth/signin`,
         method: "POST",
         body: data,
@@ -494,6 +456,20 @@ export class Api<
         method: "DELETE",
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name UserControllerGetUserTaskV1
+     * @request GET:/api/v1/user/task
+     */
+    userControllerGetUserTaskV1: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/user/task`,
+        method: "GET",
         ...params,
       }),
 
