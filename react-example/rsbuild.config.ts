@@ -1,15 +1,25 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
 import fs from "node:fs";
-
+import { pluginSvgr } from "@rsbuild/plugin-svgr";
 export default defineConfig({
   html: {
     title: "React Example",
   },
-  plugins: [pluginReact()],
+  plugins: [pluginReact(), pluginSvgr()],
   resolve: {
     alias: {
       "@": "./src",
+    },
+  },
+  performance: {
+    chunkSplit: {
+      override: {},
+    },
+  },
+  tools: {
+    rspack: {
+      module: {},
     },
   },
   server: {

@@ -25,7 +25,7 @@ export function SignupForm({ className }: React.ComponentProps<"form">) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "chess",
+      name: "example",
       email: "example@example.com",
       password: "123456",
     },

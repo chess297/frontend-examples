@@ -1,10 +1,21 @@
 import { create } from "zustand";
-import cookies from "js-cookie";
 import { devtools } from "zustand/middleware";
-const COOKIE_KEY_ACCESS_TOKEN = "react_example_access_token";
 
+// 用户权限
+interface UserPermission {
+  action: string;
+}
+// 用户可访问的路由配置
+interface RemoteRouteObject {
+  path: string;
+  component: string;
+}
 type GlobalStoreState = {
-  access_token: string;
+  // access_token: string;
+  // 该用户可以访问的路由列表
+  routes: RemoteRouteObject[];
+  // 该用户的权限列表
+  permissions: UserPermission[];
 };
 
 type GlobalStoreActions = {
@@ -13,9 +24,8 @@ type GlobalStoreActions = {
 
 export const useGlobalStore = create<GlobalStoreState & GlobalStoreActions>()(
   devtools((set) => ({
-    access_token: cookies.get(COOKIE_KEY_ACCESS_TOKEN) ?? "",
-    login_success(access_token) {
-      set({ access_token });
-    },
+    visibleRoutes: [],
+    permissions: [],
+    login_success() {},
   }))
 );

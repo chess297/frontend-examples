@@ -15,7 +15,7 @@ import {
 import { useForm } from "react-hook-form";
 import { api } from "@/services";
 import { useGlobalStore } from "@/stores";
-import Cookies from "js-cookie";
+import { ROUTES } from "@/router";
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(20),
@@ -42,13 +42,14 @@ export function SigninForm({ className }: React.ComponentProps<"form">) {
   }
 
   function onTest() {
-    api.api.authControllerSignoutV1().then((res) => {
-      const session_id = Cookies.get("session_id");
-      console.log(
-        "🚀 ~ api.api.authControllerSignoutV1 ~ session_id:",
-        session_id
-      );
-    });
+    // api.api.authControllerSignoutV1().then((res) => {
+    //   const session_id = Cookies.get("session_id");
+    //   console.log(
+    //     "🚀 ~ api.api.authControllerSignoutV1 ~ session_id:",
+    //     session_id
+    //   );
+    // });
+    navigate("/profile");
   }
   return (
     <Form {...form}>

@@ -1,51 +1,73 @@
-import App from "@/App";
+import Layout from "@/layout";
 import AuthLayout from "@/pages/auth";
-import Signin from "@/pages/auth/signin";
 import Home from "@/pages/home";
 import Task from "@/pages/task";
 import { lazy } from "react";
-import { createBrowserRouter } from "react-router";
+import type { PermissionRoute } from "./type";
 
-const Signup = lazy(() => import("@/pages/auth/signup"));
+export const ROUTES = {
+  HOME: "/",
+  AUTH: "/auth",
+  SIGNUP: "/auth/signup",
+  SIGNIN: "/auth/signin",
+  TASK: "/task",
+  ALL: "*",
+};
 
-export const routes = createBrowserRouter([
+// 公开可访问的路由
+export const publicRoutes: PermissionRoute[] = [
   {
-    path: "/",
-    Component: App,
+    path: ROUTES.HOME,
+    Component: Layout,
     HydrateFallback: () => null,
+    shouldAuth: true,
     children: [
       {
-        path: "",
         index: true,
+        shouldAuth: true,
         Component: Home,
       },
+      // 登录注册页面
       {
-        path: "auth",
+        path: ROUTES.AUTH,
         Component: AuthLayout,
         children: [
           {
             index: true,
-            Component: Signup,
+            Component: lazy(() => import("@/pages/auth/signup")),
           },
           {
-            path: "signup",
-            Component: Signup,
+            path: ROUTES.SIGNUP,
+            Component: lazy(() => import("@/pages/auth/signup")),
           },
           {
-            path: "signin",
-            Component: Signin,
+            path: ROUTES.SIGNIN,
+            Component: lazy(() => import("@/pages/auth/signin")),
           },
         ],
       },
       {
-        path: "task",
-        // 需要提前准备当前页面数据的，可以使用loader
-        // loader: async () => {
-        //   const res = await api.api.taskControllerFindAllV1();
-        //   return res.data.records;
-        // },
-        Component: Task,
+        path: ROUTES.ALL,
+        Component: lazy(() => import("@/pages/not-found")),
       },
     ],
   },
-]);
+];
+
+// 未登录可访问，但是会跳转到登录页的路由
+export const privateRoutes: PermissionRoute[] = [
+  {
+    path: ROUTES.TASK,
+    Component: Task,
+  },
+];
+
+// 即使登录了也需要对应权限才能访问的路由
+export const permissionRoutes: PermissionRoute[] = [
+  // {
+  //   path: ROUTES.,
+  //   Component: Task,
+  // },
+];
+
+export const allRoutes: PermissionRoute[] = [...publicRoutes];
