@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { createBrowserRouter, type RouteObject } from "react-router";
-import { allRoutes, publicRoutes } from "./config";
+import { allRoutes, publicRoutes, ROUTES } from "./config";
 import { getPages } from "@/services";
 import { components } from "./loader";
 import RequireAuth from "../layouts/require-auth-layout";
@@ -26,25 +26,40 @@ export function usePermissionRoutes() {
     // TODO: 从后端获取路由信息
     getPages().then((pages) => {
       setIsLoading(false);
-      const routes: RouteObject[] = pages.map((item) => {
-        const Component = components[item.component];
-
-        return {
-          path: item.path,
-          element: item.auth ? (
-            <RequireAuth>
+      const routes: RouteObject[] = [
+        ...pages.map((item) => {
+          const Component = components[item.component];
+          return {
+            path: item.path,
+            element: item.shouldAuth ? (
+              <RequireAuth>
+                <Suspense>
+                  <Component />
+                </Suspense>
+              </RequireAuth>
+            ) : (
               <Suspense>
                 <Component />
               </Suspense>
-            </RequireAuth>
-          ) : (
-            <Suspense>
-              <Component />
-            </Suspense>
-          ),
-        };
+            ),
+          };
+        }),
+      ];
+
+      const newRoutes = publicRoutes.map((item) => {
+        if (item.path === ROUTES.HOME) {
+          const firesChild = item.children?.[0];
+          if (firesChild) {
+            for (const route of routes) {
+              firesChild.children?.push(route);
+            }
+          }
+        }
+        return item;
       });
-      setRouter(createBrowserRouter([...publicRoutes, ...routes]));
+      console.log("🚀 ~ newRoutes ~ newRoutes:", newRoutes);
+
+      setRouter(createBrowserRouter(newRoutes));
     });
   }
 

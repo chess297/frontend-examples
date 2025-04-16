@@ -24,6 +24,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router";
+import { useAuthStore } from "@/hooks";
+import { ROUTES } from "@/router";
 
 export function NavUser({
   user,
@@ -35,6 +37,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuthStore();
 
   return (
     <SidebarMenu>
@@ -97,7 +100,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <Link to={"/auth/signin"}>
+            <Link to={ROUTES.SIGNIN} onClick={logout}>
               <DropdownMenuItem>
                 <LogOut />
                 Log out

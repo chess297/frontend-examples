@@ -1,29 +1,21 @@
-# Rsbuild project
+# React Example
 
-## Setup
+## 鉴权
 
-Install the dependencies:
+### 路由鉴权
 
-```bash
-pnpm install
-```
+### 按钮鉴权
 
-## Get started
+> 根据权限列表，判断按钮是否显示
 
-Start the dev server:
+### 菜单鉴权
 
-```bash
-pnpm dev
-```
+> 根据权限列表，判断菜单是否显示
 
-Build the app for production:
-
-```bash
-pnpm build
-```
-
-Preview the production build locally:
-
-```bash
-pnpm preview
+```typescript
+interface Menu {
+  id: string;
+  name: string;
+  path: string;
+}
 ```

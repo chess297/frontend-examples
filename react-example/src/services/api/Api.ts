@@ -323,511 +323,513 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * The NestJS Example API description
  */
-export class Api<
-  SecurityDataType extends unknown,
-> extends HttpClient<SecurityDataType> {
-  api = {
-    /**
-     * No description
-     *
-     * @tags app
-     * @name AppControllerPingV1
-     * @summary ping
-     * @request GET:/api/v1/ping
-     */
-    appControllerPingV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/ping`,
-        method: "GET",
-        ...params,
-      }),
+export class Api<SecurityDataType extends unknown> {
+  http: HttpClient<SecurityDataType>;
 
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthControllerSignupV1
-     * @summary 注册
-     * @request POST:/api/v1/auth/signup
-     */
-    authControllerSignupV1: (data: SignupRequest, params: RequestParams = {}) =>
-      this.request<SignupResponse, any>({
-        path: `/api/v1/auth/signup`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
+  constructor(http: HttpClient<SecurityDataType>) {
+    this.http = http;
+  }
 
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthControllerSigninV1
-     * @summary 登录
-     * @request POST:/api/v1/auth/signin
-     */
-    authControllerSigninV1: (data: SigninRequest, params: RequestParams = {}) =>
-      this.request<SigninResponse, any>({
-        path: `/api/v1/auth/signin`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags app
+   * @name AppControllerPingV1
+   * @summary ping
+   * @request GET:/api/v1/ping
+   */
+  appControllerPingV1 = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/ping`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthControllerSignoutV1
-     * @summary 登出
-     * @request POST:/api/v1/auth/signout
-     */
-    authControllerSignoutV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/auth/signout`,
-        method: "POST",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags auth
+   * @name Signup
+   * @summary 注册
+   * @request POST:/api/v1/auth/signup
+   */
+  signup = (data: SignupRequest, params: RequestParams = {}) =>
+    this.http.request<SignupResponse, any>({
+      path: `/api/v1/auth/signup`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthControllerLogoutV1
-     * @summary 注销用户
-     * @request POST:/api/v1/auth/logout
-     */
-    authControllerLogoutV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/auth/logout`,
-        method: "POST",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags auth
+   * @name Signin
+   * @summary 登录
+   * @request POST:/api/v1/auth/signin
+   */
+  signin = (data: SigninRequest, params: RequestParams = {}) =>
+    this.http.request<SigninResponse, any>({
+      path: `/api/v1/auth/signin`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerFindOnnByUserIdV1
-     * @summary 获取当前用户的信息
-     * @request GET:/api/v1/user/profile
-     */
-    profileControllerFindOnnByUserIdV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/user/profile`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags auth
+   * @name Signout
+   * @summary 登出
+   * @request POST:/api/v1/auth/signout
+   */
+  signout = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/auth/signout`,
+      method: "POST",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerUpdateV1
-     * @summary 修改当前用户信息
-     * @request PATCH:/api/v1/user/profile
-     */
-    profileControllerUpdateV1: (
-      data: UpdateProfileRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/user/profile`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags auth
+   * @name Logout
+   * @summary 注销用户
+   * @request POST:/api/v1/auth/logout
+   */
+  logout = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/auth/logout`,
+      method: "POST",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerFindOneV1
-     * @summary 获取路径id用户信息
-     * @request GET:/api/v1/user/profile/{id}
-     */
-    profileControllerFindOneV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/user/profile/${id}`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name ProfileControllerFindOnnByUserIdV1
+   * @summary 获取当前用户的信息
+   * @request GET:/api/v1/user/profile
+   */
+  profileControllerFindOnnByUserIdV1 = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user/profile`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerUpdateOneV1
-     * @summary 修改路径id用户信息
-     * @request PATCH:/api/v1/user/profile/{id}
-     */
-    profileControllerUpdateOneV1: (
-      id: string,
-      data: UpdateProfileRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/user/profile/${id}`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name ProfileControllerUpdateV1
+   * @summary 修改当前用户信息
+   * @request PATCH:/api/v1/user/profile
+   */
+  profileControllerUpdateV1 = (
+    data: UpdateProfileRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user/profile`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerCreateV1
-     * @summary 创建新用户
-     * @request POST:/api/v1/user
-     */
-    userControllerCreateV1: (
-      data: CreateUserRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/user`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name ProfileControllerFindOneV1
+   * @summary 获取路径id用户信息
+   * @request GET:/api/v1/user/profile/{id}
+   */
+  profileControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user/profile/${id}`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerFindAllV1
-     * @summary 查询多个用户
-     * @request GET:/api/v1/user
-     */
-    userControllerFindAllV1: (params: RequestParams = {}) =>
-      this.request<UserEntity[], any>({
-        path: `/api/v1/user`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name ProfileControllerUpdateOneV1
+   * @summary 修改路径id用户信息
+   * @request PATCH:/api/v1/user/profile/{id}
+   */
+  profileControllerUpdateOneV1 = (
+    id: string,
+    data: UpdateProfileRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user/profile/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerFindOnV1
-     * @summary 查询单个用户
-     * @request GET:/api/v1/user/{id}
-     */
-    userControllerFindOnV1: (id: string, params: RequestParams = {}) =>
-      this.request<UserEntity[], any>({
-        path: `/api/v1/user/${id}`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name UserControllerCreateV1
+   * @summary 创建新用户
+   * @request POST:/api/v1/user
+   */
+  userControllerCreateV1 = (
+    data: CreateUserRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerRemoveV1
-     * @summary 删除单个或多个用户
-     * @request DELETE:/api/v1/user/{id}
-     */
-    userControllerRemoveV1: (
-      id: string,
-      data: RemoveUserRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/user/${id}`,
-        method: "DELETE",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name UserControllerFindAllV1
+   * @summary 查询多个用户
+   * @request GET:/api/v1/user
+   */
+  userControllerFindAllV1 = (params: RequestParams = {}) =>
+    this.http.request<UserEntity[], any>({
+      path: `/api/v1/user`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags role
-     * @name RoleControllerCreateV1
-     * @summary 创建角色
-     * @request POST:/api/v1/role
-     */
-    roleControllerCreateV1: (
-      data: CreateRoleRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/role`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name UserControllerFindOnV1
+   * @summary 查询单个用户
+   * @request GET:/api/v1/user/{id}
+   */
+  userControllerFindOnV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<UserEntity[], any>({
+      path: `/api/v1/user/${id}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags role
-     * @name RoleControllerFindAllV1
-     * @summary 查询所有角色
-     * @request GET:/api/v1/role
-     */
-    roleControllerFindAllV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/role`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags user
+   * @name UserControllerRemoveV1
+   * @summary 删除单个或多个用户
+   * @request DELETE:/api/v1/user/{id}
+   */
+  userControllerRemoveV1 = (
+    id: string,
+    data: RemoveUserRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/user/${id}`,
+      method: "DELETE",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags role
-     * @name RoleControllerFindOneV1
-     * @summary 根据id查询角色
-     * @request GET:/api/v1/role/{id}
-     */
-    roleControllerFindOneV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/role/${id}`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags role
+   * @name RoleControllerCreateV1
+   * @summary 创建角色
+   * @request POST:/api/v1/role
+   */
+  roleControllerCreateV1 = (
+    data: CreateRoleRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/role`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags role
-     * @name RoleControllerUpdateV1
-     * @summary 修改角色
-     * @request PATCH:/api/v1/role/{id}
-     */
-    roleControllerUpdateV1: (
-      id: string,
-      data: UpdateRoleDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/role/${id}`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags role
+   * @name RoleControllerFindAllV1
+   * @summary 查询所有角色
+   * @request GET:/api/v1/role
+   */
+  roleControllerFindAllV1 = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/role`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags role
-     * @name RoleControllerRemoveV1
-     * @summary 删除角色
-     * @request DELETE:/api/v1/role/{id}
-     */
-    roleControllerRemoveV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/role/${id}`,
-        method: "DELETE",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags role
+   * @name RoleControllerFindOneV1
+   * @summary 根据id查询角色
+   * @request GET:/api/v1/role/{id}
+   */
+  roleControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/role/${id}`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags permission
-     * @name PermissionControllerCreateV1
-     * @summary 创建权限
-     * @request POST:/api/v1/permission
-     */
-    permissionControllerCreateV1: (
-      data: CreatePermissionDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/permission`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags role
+   * @name RoleControllerUpdateV1
+   * @summary 修改角色
+   * @request PATCH:/api/v1/role/{id}
+   */
+  roleControllerUpdateV1 = (
+    id: string,
+    data: UpdateRoleDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/role/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags permission
-     * @name PermissionControllerFindAllV1
-     * @summary 查询所有权限
-     * @request GET:/api/v1/permission
-     */
-    permissionControllerFindAllV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/permission`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags role
+   * @name RoleControllerRemoveV1
+   * @summary 删除角色
+   * @request DELETE:/api/v1/role/{id}
+   */
+  roleControllerRemoveV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/role/${id}`,
+      method: "DELETE",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags permission
-     * @name PermissionControllerFindOneV1
-     * @summary 根据id查询权限
-     * @request GET:/api/v1/permission/{id}
-     */
-    permissionControllerFindOneV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/permission/${id}`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags permission
+   * @name PermissionControllerCreateV1
+   * @summary 创建权限
+   * @request POST:/api/v1/permission
+   */
+  permissionControllerCreateV1 = (
+    data: CreatePermissionDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/permission`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags permission
-     * @name PermissionControllerUpdateV1
-     * @summary 修改权限
-     * @request PATCH:/api/v1/permission/{id}
-     */
-    permissionControllerUpdateV1: (
-      id: string,
-      data: UpdatePermissionDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/permission/${id}`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags permission
+   * @name PermissionControllerFindAllV1
+   * @summary 查询所有权限
+   * @request GET:/api/v1/permission
+   */
+  permissionControllerFindAllV1 = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/permission`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags permission
-     * @name PermissionControllerRemoveV1
-     * @summary 删除权限
-     * @request DELETE:/api/v1/permission/{id}
-     */
-    permissionControllerRemoveV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/permission/${id}`,
-        method: "DELETE",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags permission
+   * @name PermissionControllerFindOneV1
+   * @summary 根据id查询权限
+   * @request GET:/api/v1/permission/{id}
+   */
+  permissionControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/permission/${id}`,
+      method: "GET",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerCreateV1
-     * @summary 创建新的任务
-     * @request POST:/api/v1/task
-     */
-    taskControllerCreateV1: (
-      data: CreateTaskRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/task`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags permission
+   * @name PermissionControllerUpdateV1
+   * @summary 修改权限
+   * @request PATCH:/api/v1/permission/{id}
+   */
+  permissionControllerUpdateV1 = (
+    id: string,
+    data: UpdatePermissionDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/permission/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * @description 支持分页查询
-     *
-     * @tags task
-     * @name TaskControllerFindAllV1
-     * @summary 查询任务
-     * @request GET:/api/v1/task
-     */
-    taskControllerFindAllV1: (
-      query?: {
-        /**
-         * 页码
-         * @default 0
-         */
-        page?: number;
-        /**
-         * 每页数量
-         * @default 10
-         */
-        limit?: number;
-        /** 任务id */
-        id?: string;
-        /** 创建者id */
-        creator?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<FindTaskResponse[], any>({
-        path: `/api/v1/task`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags permission
+   * @name PermissionControllerRemoveV1
+   * @summary 删除权限
+   * @request DELETE:/api/v1/permission/{id}
+   */
+  permissionControllerRemoveV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/permission/${id}`,
+      method: "DELETE",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerFindOneV1
-     * @summary 查询单个任务
-     * @request GET:/api/v1/task/{id}
-     */
-    taskControllerFindOneV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "GET",
-        ...params,
-      }),
+  /**
+   * No description
+   *
+   * @tags task
+   * @name TaskControllerCreateV1
+   * @summary 创建新的任务
+   * @request POST:/api/v1/task
+   */
+  taskControllerCreateV1 = (
+    data: CreateTaskRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/task`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerUpdateV1
-     * @summary 修改任务
-     * @request PATCH:/api/v1/task/{id}
-     */
-    taskControllerUpdateV1: (
-      id: string,
-      data: UpdateTaskRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
+  /**
+   * @description 支持分页查询
+   *
+   * @tags task
+   * @name TaskControllerFindAllV1
+   * @summary 查询任务
+   * @request GET:/api/v1/task
+   */
+  taskControllerFindAllV1 = (
+    query?: {
+      /**
+       * 页码
+       * @default 0
+       */
+      page?: number;
+      /**
+       * 每页数量
+       * @default 10
+       */
+      limit?: number;
+      /** 任务id */
+      id?: string;
+      /** 创建者id */
+      creator?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<FindTaskResponse[], any>({
+      path: `/api/v1/task`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
 
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerRemoveV1
-     * @summary 删除任务
-     * @request DELETE:/api/v1/task/{id}
-     */
-    taskControllerRemoveV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "DELETE",
-        ...params,
-      }),
-  };
+  /**
+   * No description
+   *
+   * @tags task
+   * @name TaskControllerFindOneV1
+   * @summary 查询单个任务
+   * @request GET:/api/v1/task/{id}
+   */
+  taskControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/task/${id}`,
+      method: "GET",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags task
+   * @name TaskControllerUpdateV1
+   * @summary 修改任务
+   * @request PATCH:/api/v1/task/{id}
+   */
+  taskControllerUpdateV1 = (
+    id: string,
+    data: UpdateTaskRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/task/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags task
+   * @name TaskControllerRemoveV1
+   * @summary 删除任务
+   * @request DELETE:/api/v1/task/{id}
+   */
+  taskControllerRemoveV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/task/${id}`,
+      method: "DELETE",
+      ...params,
+    });
 }

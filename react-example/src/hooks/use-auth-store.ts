@@ -1,6 +1,6 @@
 import { api } from "@/services";
-import type { SigninRequest, SignupRequest } from "@/services/api/Api";
-import { getIsLoginCookie } from "@/utils";
+import type { SigninRequest, SignupRequest } from "@/services/api/api";
+import { getUserIdCookie } from "@/utils";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 // import Cookies from "@/utils/cookies";
@@ -30,18 +30,21 @@ type AuthStoreActions = {
 };
 
 export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
-  devtools(() => ({
-    is_login: getIsLoginCookie(),
+  devtools((set) => ({
+    is_login: getUserIdCookie(),
     menus: [],
     permissions: [],
     register(params) {
-      return api.api.authControllerSignupV1(params);
+      return api.signup(params);
     },
     async login(params) {
-      return await api.api.authControllerSigninV1(params);
+      return await api.signin(params).then((res) => {
+        set({ is_login: true });
+        return res;
+      });
     },
     logout() {
-      return api.api.authControllerSignoutV1();
+      return api.signout();
     },
     async initMenus() {
       // const res = await api.api.authControllerGetRoutesV1();

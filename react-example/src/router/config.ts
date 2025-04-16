@@ -1,6 +1,7 @@
-import Layout from "@/pages/root";
+import RootLayout from "@/pages/root";
 import AuthLayout from "@/pages/auth";
 import Home from "@/pages/home";
+import Welcome from "@/pages/welcome";
 import Task from "@/pages/task";
 import { lazy } from "react";
 import type { PermissionRoute } from "./type";
@@ -19,37 +20,44 @@ export const ROUTES = {
 export const publicRoutes: PermissionRoute[] = [
   {
     path: ROUTES.HOME,
-    Component: Layout,
+    Component: RootLayout,
     HydrateFallback: () => null,
-    shouldAuth: true,
     children: [
+      // 首页
       {
-        index: true,
+        path: "",
         shouldAuth: true,
         Component: Home,
-      },
-      // 登录注册页面
-      {
-        path: ROUTES.AUTH,
-        Component: AuthLayout,
         children: [
           {
             index: true,
-            Component: lazy(() => import("@/pages/auth/signup")),
-          },
-          {
-            path: ROUTES.SIGNUP,
-            Component: lazy(() => import("@/pages/auth/signup")),
-          },
-          {
-            path: ROUTES.SIGNIN,
-            Component: lazy(() => import("@/pages/auth/signin")),
+            Component: Welcome,
           },
         ],
       },
+      // 登录注册页面
+
       {
         path: ROUTES.ALL,
         Component: lazy(() => import("@/pages/not-found")),
+      },
+    ],
+  },
+  {
+    path: ROUTES.AUTH,
+    Component: AuthLayout,
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import("@/pages/auth/signup")),
+      },
+      {
+        path: ROUTES.SIGNUP,
+        Component: lazy(() => import("@/pages/auth/signup")),
+      },
+      {
+        path: ROUTES.SIGNIN,
+        Component: lazy(() => import("@/pages/auth/signin")),
       },
     ],
   },

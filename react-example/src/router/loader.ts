@@ -1,11 +1,10 @@
 import { type FunctionComponent, lazy } from "react";
 
-const componentContext = require.context(
-  "@/pages",
-  true,
-  /index\.(js|jsx|ts|tsx)$/,
-  "lazy"
-);
+const componentContext = import.meta.webpackContext("@/pages", {
+  recursive: true,
+  regExp: /index\.(js|jsx|ts|tsx)$/,
+  mode: "lazy",
+});
 
 export function importAllRoutes(r: Rspack.Context) {
   const components: Record<
@@ -13,10 +12,9 @@ export function importAllRoutes(r: Rspack.Context) {
     React.LazyExoticComponent<FunctionComponent>
   > = {};
   for (const key of r.keys()) {
-    const module = r(key);
-    const component = lazy(
-      () => module as Promise<{ default: FunctionComponent }>
-    );
+    console.log("🚀 ~ importAllRoutes ~ key:", key);
+    const module = r(key) as Promise<{ default: FunctionComponent }>;
+    const component = lazy(() => module);
     components[key] = component;
   }
 

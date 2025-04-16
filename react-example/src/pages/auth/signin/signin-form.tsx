@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { api } from "@/services";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { ROUTES } from "@/router";
+import { Theme, useGlobalStore } from "@/hooks/use-global-store";
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(20),
@@ -23,6 +24,7 @@ const formSchema = z.object({
 export function SigninForm({ className }: React.ComponentProps<"form">) {
   const navigate = useNavigate();
   const { login, logout } = useAuthStore();
+  const { setTheme } = useGlobalStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,7 +47,8 @@ export function SigninForm({ className }: React.ComponentProps<"form">) {
 
   function onTest() {
     // logout();
-    navigate(ROUTES.PROFILE);
+    // navigate(ROUTES.PROFILE);
+    setTheme(Theme.DARK);
   }
   return (
     <Form {...form}>
