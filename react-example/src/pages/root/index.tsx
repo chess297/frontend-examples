@@ -1,12 +1,9 @@
-import { Outlet, useLocation } from "react-router";
+import { Outlet } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from "react";
 import { RingLoader } from "react-spinners";
 
-const Layout = () => {
-  const location = useLocation();
-  console.log("🚀 ~ Layout ~ location:", location);
-
+const Root = () => {
   return (
     <div className="content">
       <Suspense fallback={<RingLoader />}>
@@ -17,4 +14,4 @@ const Layout = () => {
   );
 };
 
-export default Layout;
+export default Root;

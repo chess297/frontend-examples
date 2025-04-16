@@ -13,8 +13,9 @@ import {
   FormControl,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { api } from "@/services";
 import { toast } from "sonner";
+import { useAuthStore } from "@/hooks/use-auth-store";
+import { ROUTES } from "@/router";
 const formSchema = z.object({
   name: z.string(),
   email: z.string().email("请输入邮箱格式"),
@@ -22,23 +23,23 @@ const formSchema = z.object({
 });
 export function SignupForm({ className }: React.ComponentProps<"form">) {
   const navigate = useNavigate();
+  const { register } = useAuthStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "example",
-      email: "example@example.com",
+      email: "user@example.com",
       password: "123456",
     },
   });
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    api.api
-      .authControllerSignupV1(values)
-      .then((res) => {
-        toast(`register success id: ${res.data.id}`, {
+    register(values)
+      .then(() => {
+        toast("register success", {
           onDismiss() {
-            navigate("/auth/signin");
+            navigate(ROUTES.SIGNUP);
           },
         });
       })

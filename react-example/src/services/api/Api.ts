@@ -10,7 +10,117 @@
  * ---------------------------------------------------------------
  */
 
-export type CreateTaskRequest = object;
+export interface SignupRequest {
+  /** @example "user" */
+  name: string;
+  /** @example "user@example.com" */
+  email: string;
+  /** @example "123456user" */
+  password: string;
+}
+
+export interface SignupResponse {
+  id: string;
+}
+
+export interface SigninRequest {
+  /**
+   * 邮箱
+   * @example "user@example.com"
+   */
+  email: string;
+  /**
+   * 密码
+   * @example "123456"
+   */
+  password: string;
+}
+
+export interface SigninResponse {
+  success: boolean;
+}
+
+export interface UpdateProfileRequest {
+  user_id?: string;
+  phone?: string;
+  country_code?: string;
+  address?: string;
+}
+
+export interface CreateUserRequest {
+  /** @example "user" */
+  name: string;
+  /** @example "user@example.com" */
+  email: string;
+  /** @example "123456user" */
+  password: string;
+}
+
+export type UserEntity = object;
+
+export interface RemoveUserRequest {
+  /** 需要删除的用户id */
+  id: string;
+  /** 批量删除的用户id列表 */
+  ids: string[];
+}
+
+export interface CreateRoleRequest {
+  /** 角色名称 */
+  name: string;
+  /** 角色描述 */
+  description: string;
+  /** 权限ID列表 */
+  permissions: string[];
+  /** 用户ID列表 */
+  users: string[];
+}
+
+export interface UpdateRoleDto {
+  /** 角色名称 */
+  name?: string;
+  /** 角色描述 */
+  description?: string;
+  /** 权限ID列表 */
+  permissions?: string[];
+  /** 用户ID列表 */
+  users?: string[];
+}
+
+/** 权限动作 */
+export enum PermissionAction {
+  Manage = "manage",
+  Create = "create",
+  Read = "read",
+  Update = "update",
+  Delete = "delete",
+}
+
+export interface CreatePermissionDto {
+  name: string;
+  description: string;
+  /** 权限动作 */
+  actions: PermissionAction[];
+  resource: string;
+}
+
+export interface UpdatePermissionDto {
+  name?: string;
+  description?: string;
+  /** 权限动作 */
+  actions?: PermissionAction[];
+  resource?: string;
+  /** 角色ID数组 */
+  roles: string[];
+}
+
+export interface CreateTaskRequest {
+  title: string;
+  description: string;
+  completed: boolean;
+  /** 创建者 */
+  creator: string;
+}
 
 export interface TaskModel {
   title: string;
@@ -31,45 +141,6 @@ export interface FindTaskResponse {
 }
 
 export type UpdateTaskRequest = object;
-
-export interface SignupRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface SignupResponse {
-  id: string;
-}
-
-export interface SigninRequest {
-  email: string;
-  password: string;
-}
-
-export interface SigninResponse {
-  access_token: string;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface RemoveUserRequest {
-  /** 需要删除的用户id */
-  id: string;
-  /** 批量删除的用户id列表 */
-  ids: string[];
-}
-
-export interface UpdateProfileRequest {
-  user_id?: string;
-  phone?: string;
-  country_code?: string;
-  address?: string;
-}
 
 import type {
   AxiosInstance,
@@ -274,88 +345,6 @@ export class Api<
     /**
      * No description
      *
-     * @tags task
-     * @name TaskControllerCreateV1
-     * @request POST:/api/v1/task
-     */
-    taskControllerCreateV1: (
-      data: CreateTaskRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/task`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerFindAllV1
-     * @request GET:/api/v1/task
-     */
-    taskControllerFindAllV1: (params: RequestParams = {}) =>
-      this.request<FindTaskResponse, any>({
-        path: `/api/v1/task`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerFindOneV1
-     * @request GET:/api/v1/task/{id}
-     */
-    taskControllerFindOneV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerUpdateV1
-     * @request PATCH:/api/v1/task/{id}
-     */
-    taskControllerUpdateV1: (
-      id: string,
-      data: UpdateTaskRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags task
-     * @name TaskControllerRemoveV1
-     * @request DELETE:/api/v1/task/{id}
-     */
-    taskControllerRemoveV1: (id: string, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/task/${id}`,
-        method: "DELETE",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
      * @tags auth
      * @name AuthControllerSignupV1
      * @summary 注册
@@ -407,9 +396,95 @@ export class Api<
     /**
      * No description
      *
+     * @tags auth
+     * @name AuthControllerLogoutV1
+     * @summary 注销用户
+     * @request POST:/api/v1/auth/logout
+     */
+    authControllerLogoutV1: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/auth/logout`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name ProfileControllerFindOnnByUserIdV1
+     * @summary 获取当前用户的信息
+     * @request GET:/api/v1/user/profile
+     */
+    profileControllerFindOnnByUserIdV1: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/user/profile`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name ProfileControllerUpdateV1
+     * @summary 修改当前用户信息
+     * @request PATCH:/api/v1/user/profile
+     */
+    profileControllerUpdateV1: (
+      data: UpdateProfileRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/user/profile`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name ProfileControllerFindOneV1
+     * @summary 获取路径id用户信息
+     * @request GET:/api/v1/user/profile/{id}
+     */
+    profileControllerFindOneV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/user/profile/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name ProfileControllerUpdateOneV1
+     * @summary 修改路径id用户信息
+     * @request PATCH:/api/v1/user/profile/{id}
+     */
+    profileControllerUpdateOneV1: (
+      id: string,
+      data: UpdateProfileRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/user/profile/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags user
      * @name UserControllerCreateV1
-     * @summary 创建一个用户
+     * @summary 创建新用户
      * @request POST:/api/v1/user
      */
     userControllerCreateV1: (
@@ -429,13 +504,30 @@ export class Api<
      *
      * @tags user
      * @name UserControllerFindAllV1
-     * @summary 查询用户
+     * @summary 查询多个用户
      * @request GET:/api/v1/user
      */
     userControllerFindAllV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<UserEntity[], any>({
         path: `/api/v1/user`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name UserControllerFindOnV1
+     * @summary 查询单个用户
+     * @request GET:/api/v1/user/{id}
+     */
+    userControllerFindOnV1: (id: string, params: RequestParams = {}) =>
+      this.request<UserEntity[], any>({
+        path: `/api/v1/user/${id}`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
 
@@ -444,15 +536,16 @@ export class Api<
      *
      * @tags user
      * @name UserControllerRemoveV1
-     * @summary 删除用户
-     * @request DELETE:/api/v1/user
+     * @summary 删除单个或多个用户
+     * @request DELETE:/api/v1/user/{id}
      */
     userControllerRemoveV1: (
+      id: string,
       data: RemoveUserRequest,
       params: RequestParams = {},
     ) =>
       this.request<void, any>({
-        path: `/api/v1/user`,
+        path: `/api/v1/user/${id}`,
         method: "DELETE",
         body: data,
         type: ContentType.Json,
@@ -462,49 +555,278 @@ export class Api<
     /**
      * No description
      *
-     * @tags user
-     * @name UserControllerGetUserTaskV1
-     * @request GET:/api/v1/user/task
+     * @tags role
+     * @name RoleControllerCreateV1
+     * @summary 创建角色
+     * @request POST:/api/v1/role
      */
-    userControllerGetUserTaskV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/user/task`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerFindOnnByUserIdV1
-     * @summary 查询用户信息
-     * @request GET:/api/v1/user/profile
-     */
-    profileControllerFindOnnByUserIdV1: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/user/profile`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name ProfileControllerUpdateV1
-     * @summary 修改用户信息
-     * @request PATCH:/api/v1/user/profile
-     */
-    profileControllerUpdateV1: (
-      data: UpdateProfileRequest,
+    roleControllerCreateV1: (
+      data: CreateRoleRequest,
       params: RequestParams = {},
     ) =>
       this.request<void, any>({
-        path: `/api/v1/user/profile`,
+        path: `/api/v1/role`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags role
+     * @name RoleControllerFindAllV1
+     * @summary 查询所有角色
+     * @request GET:/api/v1/role
+     */
+    roleControllerFindAllV1: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/role`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags role
+     * @name RoleControllerFindOneV1
+     * @summary 根据id查询角色
+     * @request GET:/api/v1/role/{id}
+     */
+    roleControllerFindOneV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/role/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags role
+     * @name RoleControllerUpdateV1
+     * @summary 修改角色
+     * @request PATCH:/api/v1/role/{id}
+     */
+    roleControllerUpdateV1: (
+      id: string,
+      data: UpdateRoleDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/role/${id}`,
         method: "PATCH",
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags role
+     * @name RoleControllerRemoveV1
+     * @summary 删除角色
+     * @request DELETE:/api/v1/role/{id}
+     */
+    roleControllerRemoveV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/role/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags permission
+     * @name PermissionControllerCreateV1
+     * @summary 创建权限
+     * @request POST:/api/v1/permission
+     */
+    permissionControllerCreateV1: (
+      data: CreatePermissionDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/permission`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags permission
+     * @name PermissionControllerFindAllV1
+     * @summary 查询所有权限
+     * @request GET:/api/v1/permission
+     */
+    permissionControllerFindAllV1: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/permission`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags permission
+     * @name PermissionControllerFindOneV1
+     * @summary 根据id查询权限
+     * @request GET:/api/v1/permission/{id}
+     */
+    permissionControllerFindOneV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/permission/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags permission
+     * @name PermissionControllerUpdateV1
+     * @summary 修改权限
+     * @request PATCH:/api/v1/permission/{id}
+     */
+    permissionControllerUpdateV1: (
+      id: string,
+      data: UpdatePermissionDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/permission/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags permission
+     * @name PermissionControllerRemoveV1
+     * @summary 删除权限
+     * @request DELETE:/api/v1/permission/{id}
+     */
+    permissionControllerRemoveV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/permission/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags task
+     * @name TaskControllerCreateV1
+     * @summary 创建新的任务
+     * @request POST:/api/v1/task
+     */
+    taskControllerCreateV1: (
+      data: CreateTaskRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/task`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description 支持分页查询
+     *
+     * @tags task
+     * @name TaskControllerFindAllV1
+     * @summary 查询任务
+     * @request GET:/api/v1/task
+     */
+    taskControllerFindAllV1: (
+      query?: {
+        /**
+         * 页码
+         * @default 0
+         */
+        page?: number;
+        /**
+         * 每页数量
+         * @default 10
+         */
+        limit?: number;
+        /** 任务id */
+        id?: string;
+        /** 创建者id */
+        creator?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<FindTaskResponse[], any>({
+        path: `/api/v1/task`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags task
+     * @name TaskControllerFindOneV1
+     * @summary 查询单个任务
+     * @request GET:/api/v1/task/{id}
+     */
+    taskControllerFindOneV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/task/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags task
+     * @name TaskControllerUpdateV1
+     * @summary 修改任务
+     * @request PATCH:/api/v1/task/{id}
+     */
+    taskControllerUpdateV1: (
+      id: string,
+      data: UpdateTaskRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/task/${id}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags task
+     * @name TaskControllerRemoveV1
+     * @summary 删除任务
+     * @request DELETE:/api/v1/task/{id}
+     */
+    taskControllerRemoveV1: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/task/${id}`,
+        method: "DELETE",
         ...params,
       }),
   };

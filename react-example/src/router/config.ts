@@ -1,4 +1,4 @@
-import Layout from "@/layout";
+import Layout from "@/pages/root";
 import AuthLayout from "@/pages/auth";
 import Home from "@/pages/home";
 import Task from "@/pages/task";
@@ -11,6 +11,7 @@ export const ROUTES = {
   SIGNUP: "/auth/signup",
   SIGNIN: "/auth/signin",
   TASK: "/task",
+  PROFILE: "/profile",
   ALL: "*",
 };
 

@@ -7,11 +7,12 @@ export type Page = {
   title: string;
   path: string;
   component: string;
+  auth?: boolean;
 };
 
 export async function getPages() {
   await new Promise((resolve) => {
-    setTimeout(resolve, 2000);
+    setTimeout(resolve, 300);
   });
   return [
     // { id: 1, title: "Home", path: "/", component: "@/pages/home" },
@@ -21,6 +22,7 @@ export async function getPages() {
       title: "Profile",
       path: "/profile",
       component: "./profile/index.tsx",
+      auth: true,
     },
   ] as Page[];
 }

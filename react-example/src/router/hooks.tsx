@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
-import {
-  createBrowserRouter,
-  useLocation,
-  useMatches,
-  useNavigate,
-} from "react-router";
-import { allRoutes, publicRoutes } from "./routes";
+import { Suspense, useEffect, useState } from "react";
+import { createBrowserRouter, type RouteObject } from "react-router";
+import { allRoutes, publicRoutes } from "./config";
 import { getPages } from "@/services";
 import { components } from "./loader";
+import RequireAuth from "../layouts/require-auth-layout";
 const defaultRoutes = publicRoutes;
 export function usePermissionRoutes() {
   const [router, setRouter] = useState(createBrowserRouter(defaultRoutes));
@@ -30,17 +26,25 @@ export function usePermissionRoutes() {
     // TODO: 从后端获取路由信息
     getPages().then((pages) => {
       setIsLoading(false);
-      setRouter(
-        createBrowserRouter([
-          ...publicRoutes,
-          ...pages.map((item) => {
-            return {
-              path: item.path,
-              Component: components[item.component],
-            };
-          }),
-        ])
-      );
+      const routes: RouteObject[] = pages.map((item) => {
+        const Component = components[item.component];
+
+        return {
+          path: item.path,
+          element: item.auth ? (
+            <RequireAuth>
+              <Suspense>
+                <Component />
+              </Suspense>
+            </RequireAuth>
+          ) : (
+            <Suspense>
+              <Component />
+            </Suspense>
+          ),
+        };
+      });
+      setRouter(createBrowserRouter([...publicRoutes, ...routes]));
     });
   }
 
@@ -49,22 +53,5 @@ export function usePermissionRoutes() {
     router,
     updateRole,
     loadRoutes,
-  };
-}
-
-export function useMatchRoute() {
-  const location = useLocation();
-  console.log("🚀 ~ useMatchRoute ~ location:", location.pathname);
-  return { path: location.pathname };
-}
-
-export function useRouter() {
-  const navigate = useNavigate();
-  function to(path: string) {
-    navigate(path);
-  }
-
-  return {
-    to,
   };
 }

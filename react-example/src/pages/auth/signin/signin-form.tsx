@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { api } from "@/services";
-import { useGlobalStore } from "@/stores";
+import { useAuthStore } from "@/hooks/use-auth-store";
 import { ROUTES } from "@/router";
 const formSchema = z.object({
   email: z.string().email(),
@@ -22,34 +22,30 @@ const formSchema = z.object({
 });
 export function SigninForm({ className }: React.ComponentProps<"form">) {
   const navigate = useNavigate();
-  const { login_success } = useGlobalStore();
+  const { login, logout } = useAuthStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "example@example.com",
+      email: "user@example.com",
       password: "123456",
     },
   });
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    api.api.authControllerSigninV1(values).then((res) => {
-      if (res.data.access_token) {
-        login_success(res.data.access_token);
-        navigate("/");
-      }
-    });
+    login(values)
+      .then(() => {
+        navigate(ROUTES.HOME);
+      })
+      .catch(() => {
+        // TODO: handle error
+        console.log("error");
+      });
   }
 
   function onTest() {
-    // api.api.authControllerSignoutV1().then((res) => {
-    //   const session_id = Cookies.get("session_id");
-    //   console.log(
-    //     "🚀 ~ api.api.authControllerSignoutV1 ~ session_id:",
-    //     session_id
-    //   );
-    // });
-    navigate("/profile");
+    // logout();
+    navigate(ROUTES.PROFILE);
   }
   return (
     <Form {...form}>
