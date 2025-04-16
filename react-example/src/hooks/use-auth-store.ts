@@ -1,23 +1,23 @@
+import type { PermissionRoute } from "@/router";
 import { api } from "@/services";
-import type { SigninRequest, SignupRequest } from "@/services/api/api";
+import type {
+  FindManyMenuResponse,
+  SigninRequest,
+  SignupRequest,
+} from "@/services/api/api";
 import { getUserIdCookie } from "@/utils";
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
 // import Cookies from "@/utils/cookies";
 // 用户权限
 interface UserPermission {
   action: string;
 }
-// 用户可访问的路由配置
-interface RemoteRouteObject {
-  path: string;
-  component: string;
-}
+
 type AuthStoreState = {
   is_login: boolean;
-  // access_token: string;
   // 该用户可以访问的路由列表
-  menus: RemoteRouteObject[];
+  menus: FindManyMenuResponse["records"];
+  routes: PermissionRoute[];
   // 该用户的权限列表
   permissions: UserPermission[];
 };
@@ -29,26 +29,40 @@ type AuthStoreActions = {
   initMenus(): Promise<void>;
 };
 
-export const useAuthStore = create<AuthStoreState & AuthStoreActions>()(
-  devtools((set) => ({
-    is_login: getUserIdCookie(),
+export const useAuthStore = create<AuthStoreState & AuthStoreActions>(
+  (set, get) => ({
+    is_login: !!getUserIdCookie(),
     menus: [],
+    routes: [],
     permissions: [],
-    register(params) {
-      return api.signup(params);
+    async register(params) {
+      await api.signup(params);
+      return;
     },
-    async login(params) {
-      return await api.signin(params).then((res) => {
-        set({ is_login: true });
-        return res;
-      });
+    login: async (params) => {
+      await api.signin(params);
+      // 登录成功后设置用户信息、权限、获取菜单等
+      set({ is_login: true });
+      // await initMenus();
+      await get().initMenus();
+      return;
     },
     logout() {
       return api.signout();
     },
-    async initMenus() {
+    initMenus: async () => {
       // const res = await api.api.authControllerGetRoutesV1();
       // this.routes = res.data;
+      await api.findManyMenu().then((res) => {
+        set({
+          menus: res.data.records,
+          routes: res.data.records.map((item) => ({
+            name: item.name,
+            path: item.path,
+            component: item.component,
+          })),
+        });
+      });
     },
-  }))
+  })
 );

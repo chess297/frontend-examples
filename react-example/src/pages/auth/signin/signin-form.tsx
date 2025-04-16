@@ -39,9 +39,9 @@ export function SigninForm({ className }: React.ComponentProps<"form">) {
       .then(() => {
         navigate(ROUTES.HOME);
       })
-      .catch(() => {
+      .catch((err) => {
         // TODO: handle error
-        console.log("error");
+        console.error("error", err);
       });
   }
 

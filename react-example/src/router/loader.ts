@@ -12,7 +12,7 @@ export function importAllRoutes(r: Rspack.Context) {
     React.LazyExoticComponent<FunctionComponent>
   > = {};
   for (const key of r.keys()) {
-    console.log("🚀 ~ importAllRoutes ~ key:", key);
+    // console.log("🚀 ~ importAllRoutes ~ key:", key);
     const module = r(key) as Promise<{ default: FunctionComponent }>;
     const component = lazy(() => module);
     components[key] = component;

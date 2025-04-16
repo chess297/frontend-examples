@@ -13,6 +13,7 @@ import {
   Sparkles,
   Trash2,
   ShieldUser,
+  Icon,
 } from "lucide-react";
 
 import { NavFavorites } from "@/components/nav-favorites";
@@ -26,6 +27,8 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useMenus } from "@/hooks/ues-menus";
+import { useAuthStore } from "@/hooks";
 
 // This is sample data.
 const data = {
@@ -266,11 +269,12 @@ const data = {
 export function SidebarLeft({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const { menus } = useAuthStore();
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
         {/* <TeamSwitcher teams={data.teams} /> */}
-        <NavMain items={data.navMain} />
+        <NavMain items={menus} />
       </SidebarHeader>
       <SidebarContent>
         {/* <NavFavorites favorites={data.favorites} /> */}

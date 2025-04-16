@@ -54,6 +54,11 @@ export interface CreateUserRequest {
   email: string;
   /** @example "123456user" */
   password: string;
+  /**
+   * 用户角色id列表
+   * @example "123456user"
+   */
+  roles: object[];
 }
 
 export type UserEntity = object;
@@ -112,6 +117,47 @@ export interface UpdatePermissionDto {
   resource?: string;
   /** 角色ID数组 */
   roles: string[];
+}
+
+export interface CreateMenuRequest {
+  id: string;
+  /** 菜单名称 */
+  name: string;
+  /** 菜单路径 */
+  path: string;
+  /** 菜单图标 */
+  icon: string;
+  /** 组件 */
+  component: string;
+  /** 父级菜单ID */
+  parent_id: string;
+}
+
+export interface MenuEntity {
+  id: string;
+  name: string;
+  path: string;
+  icon: string;
+  component: string;
+}
+
+export interface FindManyMenuResponse {
+  records: MenuEntity[];
+  total: number;
+}
+
+export interface UpdateMenuDto {
+  id?: string;
+  /** 菜单名称 */
+  name?: string;
+  /** 菜单路径 */
+  path?: string;
+  /** 菜单图标 */
+  icon?: string;
+  /** 组件 */
+  component?: string;
+  /** 父级菜单ID */
+  parent_id?: string;
 }
 
 export interface CreateTaskRequest {
@@ -642,17 +688,14 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * No description
+   * @description 创建权限
    *
    * @tags permission
-   * @name PermissionControllerCreateV1
+   * @name CreatePermission
    * @summary 创建权限
    * @request POST:/api/v1/permission
    */
-  permissionControllerCreateV1 = (
-    data: CreatePermissionDto,
-    params: RequestParams = {},
-  ) =>
+  createPermission = (data: CreatePermissionDto, params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/permission`,
       method: "POST",
@@ -662,14 +705,14 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * No description
+   * @description 查询所有权限
    *
    * @tags permission
-   * @name PermissionControllerFindAllV1
+   * @name FindManyPermission
    * @summary 查询所有权限
    * @request GET:/api/v1/permission
    */
-  permissionControllerFindAllV1 = (params: RequestParams = {}) =>
+  findManyPermission = (params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/permission`,
       method: "GET",
@@ -677,14 +720,14 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * No description
+   * @description 根据id查询权限
    *
    * @tags permission
-   * @name PermissionControllerFindOneV1
+   * @name FindOnePermission
    * @summary 根据id查询权限
    * @request GET:/api/v1/permission/{id}
    */
-  permissionControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+  findOnePermission = (id: string, params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/permission/${id}`,
       method: "GET",
@@ -692,14 +735,14 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * No description
+   * @description 修改权限
    *
    * @tags permission
-   * @name PermissionControllerUpdateV1
+   * @name UpdatePermission
    * @summary 修改权限
    * @request PATCH:/api/v1/permission/{id}
    */
-  permissionControllerUpdateV1 = (
+  updatePermission = (
     id: string,
     data: UpdatePermissionDto,
     params: RequestParams = {},
@@ -713,16 +756,96 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * No description
+   * @description 删除权限
    *
    * @tags permission
-   * @name PermissionControllerRemoveV1
+   * @name RemovePermission
    * @summary 删除权限
    * @request DELETE:/api/v1/permission/{id}
    */
-  permissionControllerRemoveV1 = (id: string, params: RequestParams = {}) =>
+  removePermission = (id: string, params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/permission/${id}`,
+      method: "DELETE",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu
+   * @name CreateMenu
+   * @summary 创建菜单
+   * @request POST:/api/v1/menu
+   */
+  createMenu = (data: CreateMenuRequest, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu
+   * @name FindManyMenu
+   * @summary 获取菜单列表
+   * @request GET:/api/v1/menu
+   */
+  findManyMenu = (params: RequestParams = {}) =>
+    this.http.request<FindManyMenuResponse, any>({
+      path: `/api/v1/menu`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu
+   * @name FindOneMenu
+   * @summary 获取菜单详情
+   * @request GET:/api/v1/menu/{id}
+   */
+  findOneMenu = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu/${id}`,
+      method: "GET",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu
+   * @name UpdateMenu
+   * @summary 更新菜单
+   * @request PATCH:/api/v1/menu/{id}
+   */
+  updateMenu = (id: string, data: UpdateMenuDto, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu
+   * @name RemoveMenu
+   * @summary 删除菜单
+   * @request DELETE:/api/v1/menu/{id}
+   */
+  removeMenu = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu/${id}`,
       method: "DELETE",
       ...params,
     });
