@@ -30,12 +30,13 @@ export function Root() {
   const [router, setRouter] = useState(createBrowserRouter(publicRoutes));
 
   const [isLoading, { setRight }] = useToggle(true);
-  const { menus, setMenus, getUserInfo } = useAuthStore();
+  const { menus, setMenus, getUserInfo, getUserPermission } = useAuthStore();
 
   useEffect(() => {
     getInitState().then(async (res) => {
       setMenus(res.menus);
       await getUserInfo();
+      // await getUserPermission();
       setRight();
     });
   }, [setMenus, setRight, getUserInfo]);

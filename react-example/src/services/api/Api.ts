@@ -68,13 +68,14 @@ export interface BadResponse {
   message: string;
 }
 
-export interface ProfileEntity {
+export interface FullProfile {
   id: string;
   /** @format date-time */
   create_at: string;
   /** @format date-time */
   update_at: string;
-  user_id: string;
+  name: string;
+  email: string;
   phone: string;
   country_code: string;
   address: string;
@@ -555,7 +556,7 @@ export class Api<SecurityDataType extends unknown> {
   getUserProfile = (params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: ProfileEntity;
+        data?: FullProfile;
       },
       any
     >({
@@ -579,7 +580,7 @@ export class Api<SecurityDataType extends unknown> {
   ) =>
     this.http.request<
       SuccessResponse & {
-        data?: ProfileEntity;
+        data?: FullProfile;
       },
       any
     >({
@@ -600,9 +601,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/user/profile/{id}
    */
   profileControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: FullProfile;
+      },
+      any
+    >({
       path: `/api/v1/user/profile/${id}`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -619,11 +626,17 @@ export class Api<SecurityDataType extends unknown> {
     data: UpdateProfileRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: FullProfile;
+      },
+      any
+    >({
       path: `/api/v1/user/profile/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -904,6 +917,27 @@ export class Api<SecurityDataType extends unknown> {
       path: `/api/v1/permission`,
       method: "GET",
       query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * @description 获取当前登录用户的权限
+   *
+   * @tags permission
+   * @name GetUserPermission
+   * @summary 获取当前登录用户的权限
+   * @request GET:/api/v1/permission/user/permission
+   */
+  getUserPermission = (params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: PermissionEntity;
+      },
+      any
+    >({
+      path: `/api/v1/permission/user/permission`,
+      method: "GET",
       format: "json",
       ...params,
     });

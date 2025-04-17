@@ -40,7 +40,6 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const { user_info, logout } = useAuthStore();
-  console.log("🚀 ~ user_info:", user_info);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -62,13 +61,11 @@ export function NavUser({
                   src={user.avatar}
                   alt={user_info?.id ?? user.name}
                 />
-                <AvatarFallback className="rounded-lg">
-                  {user_info?.name}
-                </AvatarFallback>
+                <AvatarFallback className="rounded-lg">CH</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {user_info?.id ?? user.name}
+                  {user_info?.name ?? user.name}
                 </span>
                 <span className="truncate text-xs">
                   {user_info?.email ?? user.email}

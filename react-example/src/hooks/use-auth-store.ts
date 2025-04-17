@@ -1,7 +1,7 @@
 import { api } from "@/services";
 import type {
+  FullProfile,
   MenuEntity,
-  ProfileEntity,
   SigninRequest,
   SignupRequest,
 } from "@/services/api/api";
@@ -19,7 +19,7 @@ type AuthStoreState = {
   menus: MenuEntity[];
   // 该用户的权限列表
   permissions: UserPermission[];
-  user_info: ProfileEntity | null;
+  user_info: FullProfile | null;
 };
 
 type AuthStoreActions = {
@@ -27,6 +27,7 @@ type AuthStoreActions = {
   login(params: SigninRequest): Promise<void>;
   logout(): void;
   getUserInfo(): Promise<void>;
+  getUserPermission(): Promise<void>;
   setMenus(menus: MenuEntity[]): Promise<void>;
   updateLoginStatus(): void;
 };
@@ -76,6 +77,19 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>(
           .catch((err) => {
             console.log(err);
           });
+        await get()
+          .getUserPermission()
+          .catch((err) => {
+            console.log("🚀 ~ getUserInfo ~ err:", err);
+          });
+      },
+      async getUserPermission() {
+        await api.getUserPermission().then((res) => {
+          console.log("🚀 ~ awaitapi.getPermission ~ res:", res);
+          // set({
+          //   permissions: res.data.data,
+          // });
+        });
       },
       setMenus: async (menus) => {
         set({
