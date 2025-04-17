@@ -1,21 +1,22 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
+// import "./index.css";
 import "./styles/globals.css";
 import { Root } from "./layouts/root-layout";
-// import { usePermissionRoutes } from "./router";
+import { Toaster } from "sonner";
 
 async function bootstrap() {
   console.log("🚀 ~ bootstrap ~ bootstrap:");
-  // const { loadRoutes } = usePermissionRoutes();
-  // loadRoutes();
+
   const rootEl = document.getElementById("root");
   if (rootEl) {
     const root = ReactDOM.createRoot(rootEl);
     root.render(
-      <React.StrictMode>
+      // <React.StrictMode>
+      <>
         <Root />
-      </React.StrictMode>
+        <Toaster position="top-center" />
+      </>
+      // </React.StrictMode>
     );
   }
 }

@@ -23,6 +23,25 @@ export interface SignupResponse {
   id: string;
 }
 
+export interface SuccessResponse {
+  /**
+   * 服务端处理结果状态码
+   * @example 0
+   */
+  code: number;
+  /**
+   * 服务端处理结果状态信息
+   * @example "success"
+   */
+  message: string;
+  /** 服务端处理结果数据 */
+  data: object;
+}
+
+export interface SigninResponse {
+  success: boolean;
+}
+
 export interface SigninRequest {
   /**
    * 邮箱
@@ -36,8 +55,29 @@ export interface SigninRequest {
   password: string;
 }
 
-export interface SigninResponse {
-  success: boolean;
+export interface BadResponse {
+  /**
+   * 服务端处理结果状态码
+   * @example 400
+   */
+  code: number;
+  /**
+   * 服务端处理结果状态信息
+   * @example "error"
+   */
+  message: string;
+}
+
+export interface ProfileEntity {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  user_id: string;
+  phone: string;
+  country_code: string;
+  address: string;
 }
 
 export interface UpdateProfileRequest {
@@ -47,6 +87,8 @@ export interface UpdateProfileRequest {
   address?: string;
 }
 
+export type UserEntity = object;
+
 export interface CreateUserRequest {
   /** @example "user" */
   name: string;
@@ -54,20 +96,56 @@ export interface CreateUserRequest {
   email: string;
   /** @example "123456user" */
   password: string;
-  /**
-   * 用户角色id列表
-   * @example "123456user"
-   */
-  roles: object[];
+  /** 用户角色id列表 */
+  role: object;
 }
 
-export type UserEntity = object;
+export interface PaginationData {
+  /**
+   * 当前页码
+   * @example 1
+   */
+  current: number;
+  /**
+   * 每页显示条数
+   * @example 10
+   */
+  total: number;
+  /** 数据列表 */
+  records: any[][];
+}
+
+export interface PaginationResponse {
+  /**
+   * 服务端处理结果状态码
+   * @example 200
+   */
+  code: number;
+  /**
+   * 服务端处理结果状态信息
+   * @example "success"
+   */
+  message: string;
+  /** 服务端处理结果数据 */
+  data: PaginationData;
+}
 
 export interface RemoveUserRequest {
   /** 需要删除的用户id */
   id: string;
   /** 批量删除的用户id列表 */
   ids: string[];
+}
+
+export interface RoleEntity {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  name: string;
+  description: string;
+  permissions: string[];
 }
 
 export interface CreateRoleRequest {
@@ -90,6 +168,22 @@ export interface UpdateRoleDto {
   permissions?: string[];
   /** 用户ID列表 */
   users?: string[];
+}
+
+export interface PermissionEntity {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  /** 权限名称 */
+  name: string;
+  /** 权限描述 */
+  description: string;
+  /** 权限动作列表 */
+  actions: ("manage" | "create" | "update" | "delete" | "read")[];
+  /** 资源名称 */
+  resource: string;
 }
 
 /** 权限动作 */
@@ -119,6 +213,14 @@ export interface UpdatePermissionDto {
   roles: string[];
 }
 
+export interface MenuEntity {
+  id: string;
+  name: string;
+  path: string;
+  icon: string;
+  component: string;
+}
+
 export interface CreateMenuRequest {
   id: string;
   /** 菜单名称 */
@@ -131,19 +233,6 @@ export interface CreateMenuRequest {
   component: string;
   /** 父级菜单ID */
   parent_id: string;
-}
-
-export interface MenuEntity {
-  id: string;
-  name: string;
-  path: string;
-  icon: string;
-  component: string;
-}
-
-export interface FindManyMenuResponse {
-  records: MenuEntity[];
-  total: number;
 }
 
 export interface UpdateMenuDto {
@@ -160,15 +249,7 @@ export interface UpdateMenuDto {
   parent_id?: string;
 }
 
-export interface CreateTaskRequest {
-  title: string;
-  description: string;
-  completed: boolean;
-  /** 创建者 */
-  creator: string;
-}
-
-export interface TaskModel {
+export interface TaskEntity {
   title: string;
   description: string;
   completed: boolean;
@@ -179,11 +260,12 @@ export interface TaskModel {
   id: string;
 }
 
-export interface FindTaskResponse {
-  /** 任务列表 */
-  records: TaskModel[];
-  total: number;
-  message: string;
+export interface CreateTaskRequest {
+  title: string;
+  description: string;
+  completed: boolean;
+  /** 创建者 */
+  creator: string;
 }
 
 export type UpdateTaskRequest = object;
@@ -418,7 +500,12 @@ export class Api<SecurityDataType extends unknown> {
    * @request POST:/api/v1/auth/signin
    */
   signin = (data: SigninRequest, params: RequestParams = {}) =>
-    this.http.request<SigninResponse, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: SigninResponse;
+      },
+      BadResponse
+    >({
       path: `/api/v1/auth/signin`,
       method: "POST",
       body: data,
@@ -461,14 +548,20 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name ProfileControllerFindOnnByUserIdV1
+   * @name GetUserProfile
    * @summary 获取当前用户的信息
    * @request GET:/api/v1/user/profile
    */
-  profileControllerFindOnnByUserIdV1 = (params: RequestParams = {}) =>
-    this.http.request<void, any>({
+  getUserProfile = (params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: ProfileEntity;
+      },
+      any
+    >({
       path: `/api/v1/user/profile`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -476,19 +569,25 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name ProfileControllerUpdateV1
+   * @name UpdateUserProfile
    * @summary 修改当前用户信息
    * @request PATCH:/api/v1/user/profile
    */
-  profileControllerUpdateV1 = (
+  updateUserProfile = (
     data: UpdateProfileRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: ProfileEntity;
+      },
+      any
+    >({
       path: `/api/v1/user/profile`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -540,11 +639,17 @@ export class Api<SecurityDataType extends unknown> {
     data: CreateUserRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: UserEntity;
+      },
+      any
+    >({
       path: `/api/v1/user`,
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -557,7 +662,14 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/user
    */
   userControllerFindAllV1 = (params: RequestParams = {}) =>
-    this.http.request<UserEntity[], any>({
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: UserEntity[];
+        };
+      },
+      any
+    >({
       path: `/api/v1/user`,
       method: "GET",
       format: "json",
@@ -573,7 +685,12 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/user/{id}
    */
   userControllerFindOnV1 = (id: string, params: RequestParams = {}) =>
-    this.http.request<UserEntity[], any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: UserEntity;
+      },
+      any
+    >({
       path: `/api/v1/user/${id}`,
       method: "GET",
       format: "json",
@@ -613,11 +730,17 @@ export class Api<SecurityDataType extends unknown> {
     data: CreateRoleRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: RoleEntity;
+      },
+      BadResponse
+    >({
       path: `/api/v1/role`,
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -629,10 +752,33 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 查询所有角色
    * @request GET:/api/v1/role
    */
-  roleControllerFindAllV1 = (params: RequestParams = {}) =>
-    this.http.request<void, any>({
+  roleControllerFindAllV1 = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: RoleEntity[];
+        };
+      },
+      BadResponse
+    >({
       path: `/api/v1/role`,
       method: "GET",
+      query: query,
+      format: "json",
       ...params,
     });
 
@@ -645,9 +791,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/role/{id}
    */
   roleControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: RoleEntity;
+      },
+      any
+    >({
       path: `/api/v1/role/${id}`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -664,11 +816,17 @@ export class Api<SecurityDataType extends unknown> {
     data: UpdateRoleDto,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: RoleEntity;
+      },
+      any
+    >({
       path: `/api/v1/role/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -696,11 +854,17 @@ export class Api<SecurityDataType extends unknown> {
    * @request POST:/api/v1/permission
    */
   createPermission = (data: CreatePermissionDto, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: PermissionEntity;
+      },
+      any
+    >({
       path: `/api/v1/permission`,
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -712,10 +876,35 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 查询所有权限
    * @request GET:/api/v1/permission
    */
-  findManyPermission = (params: RequestParams = {}) =>
-    this.http.request<void, any>({
+  findManyPermission = (
+    query: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      name: string;
+      resource: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: PermissionEntity[];
+        };
+      },
+      any
+    >({
       path: `/api/v1/permission`,
       method: "GET",
+      query: query,
+      format: "json",
       ...params,
     });
 
@@ -728,9 +917,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/permission/{id}
    */
   findOnePermission = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: PermissionEntity;
+      },
+      any
+    >({
       path: `/api/v1/permission/${id}`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -747,11 +942,17 @@ export class Api<SecurityDataType extends unknown> {
     data: UpdatePermissionDto,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: PermissionEntity;
+      },
+      any
+    >({
       path: `/api/v1/permission/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -779,11 +980,17 @@ export class Api<SecurityDataType extends unknown> {
    * @request POST:/api/v1/menu
    */
   createMenu = (data: CreateMenuRequest, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuEntity;
+      },
+      any
+    >({
       path: `/api/v1/menu`,
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -796,7 +1003,14 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/menu
    */
   findManyMenu = (params: RequestParams = {}) =>
-    this.http.request<FindManyMenuResponse, any>({
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: MenuEntity[];
+        };
+      },
+      any
+    >({
       path: `/api/v1/menu`,
       method: "GET",
       format: "json",
@@ -812,9 +1026,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/menu/{id}
    */
   findOneMenu = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuEntity;
+      },
+      any
+    >({
       path: `/api/v1/menu/${id}`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -827,11 +1047,17 @@ export class Api<SecurityDataType extends unknown> {
    * @request PATCH:/api/v1/menu/{id}
    */
   updateMenu = (id: string, data: UpdateMenuDto, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuEntity;
+      },
+      any
+    >({
       path: `/api/v1/menu/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -862,11 +1088,17 @@ export class Api<SecurityDataType extends unknown> {
     data: CreateTaskRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: TaskEntity;
+      },
+      any
+    >({
       path: `/api/v1/task`,
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 
@@ -881,12 +1113,12 @@ export class Api<SecurityDataType extends unknown> {
   taskControllerFindAllV1 = (
     query?: {
       /**
-       * 页码
-       * @default 0
+       * 当前页码
+       * @default 1
        */
       page?: number;
       /**
-       * 每页数量
+       * 每页显示条数
        * @default 10
        */
       limit?: number;
@@ -897,7 +1129,14 @@ export class Api<SecurityDataType extends unknown> {
     },
     params: RequestParams = {},
   ) =>
-    this.http.request<FindTaskResponse[], any>({
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: TaskEntity[];
+        };
+      },
+      any
+    >({
       path: `/api/v1/task`,
       method: "GET",
       query: query,
@@ -914,9 +1153,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/task/{id}
    */
   taskControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: TaskEntity;
+      },
+      any
+    >({
       path: `/api/v1/task/${id}`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -933,11 +1178,17 @@ export class Api<SecurityDataType extends unknown> {
     data: UpdateTaskRequest,
     params: RequestParams = {},
   ) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: TaskEntity;
+      },
+      any
+    >({
       path: `/api/v1/task/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
+      format: "json",
       ...params,
     });
 

@@ -13,17 +13,16 @@ import {
   FormControl,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { api } from "@/services";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { ROUTES } from "@/router";
 import { Theme, useGlobalStore } from "@/hooks/use-global-store";
+import { toast } from "sonner";
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6).max(20),
 });
 export function SigninForm({ className }: React.ComponentProps<"form">) {
-  const navigate = useNavigate();
-  const { login, logout } = useAuthStore();
+  const { login, updateLoginStatus } = useAuthStore();
   const { setTheme } = useGlobalStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,15 +33,16 @@ export function SigninForm({ className }: React.ComponentProps<"form">) {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    login(values)
-      .then(() => {
-        navigate(ROUTES.HOME);
-      })
-      .catch((err) => {
-        // TODO: handle error
-        console.error("error", err);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await login(values).then(() => {
+      toast.success("Login success", {
+        duration: 1000,
+        description: "Welcome back!",
+        onAutoClose: () => {
+          updateLoginStatus();
+        },
       });
+    });
   }
 
   function onTest() {

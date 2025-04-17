@@ -1,8 +1,12 @@
+import { useAuthStore } from "@/hooks";
 import { GalleryVerticalEnd } from "lucide-react";
-import Image from "@/assets/placeholder.svg?react";
-import { Link, Outlet } from "react-router";
+import { Link, Navigate, Outlet } from "react-router";
 
-export default function LoginPage() {
+export default function Auth() {
+  const { is_login } = useAuthStore();
+  if (is_login) {
+    return <Navigate to={"/"} />;
+  }
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

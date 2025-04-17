@@ -1,4 +1,7 @@
 import { type FunctionComponent, lazy } from "react";
+import { HomeRoute, WelcomeRoute } from "./config";
+import type { MenuEntity } from "@/services/api/api";
+import type { PermissionRoute } from "./type";
 
 const componentContext = import.meta.webpackContext("@/pages", {
   recursive: true,
@@ -20,4 +23,20 @@ export function importAllRoutes(r: Rspack.Context) {
 
   return components;
 }
+
+export function mergeHomeRoutes(menus: MenuEntity[]) {
+  HomeRoute.children = [
+    WelcomeRoute,
+    ...menus
+      .filter((item) => !!item.path)
+      .map((item) => {
+        return {
+          path: item.path,
+          name: item.name,
+          Component: components[item.component],
+        } as PermissionRoute;
+      }),
+  ];
+}
+
 export const components = importAllRoutes(componentContext);

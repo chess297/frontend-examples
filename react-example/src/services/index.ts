@@ -1,5 +1,25 @@
+import { ROUTES } from "@/router";
 import { Api, HttpClient } from "./api/api";
+import { toast } from "sonner";
 const http = new HttpClient();
+http.instance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response.status === 401) {
+      toSignin();
+    } else if (error.response.status === 400) {
+      toast.error(error.response.data.message);
+    }
+    throw error;
+  }
+);
+
+const toSignin = () => {
+  window.location.href = ROUTES.SIGNIN;
+};
+
 export const api = new Api(http);
 
 export type Page = {
