@@ -70,10 +70,6 @@ export interface BadResponse {
 
 export interface FullProfile {
   id: string;
-  /** @format date-time */
-  create_at: string;
-  /** @format date-time */
-  update_at: string;
   name: string;
   email: string;
   phone: string;
@@ -140,10 +136,6 @@ export interface RemoveUserRequest {
 
 export interface RoleEntity {
   id: string;
-  /** @format date-time */
-  create_at: string;
-  /** @format date-time */
-  update_at: string;
   name: string;
   description: string;
   permissions: string[];
@@ -173,10 +165,6 @@ export interface UpdateRoleDto {
 
 export interface PermissionEntity {
   id: string;
-  /** @format date-time */
-  create_at: string;
-  /** @format date-time */
-  update_at: string;
   /** 权限名称 */
   name: string;
   /** 权限描述 */
@@ -214,40 +202,101 @@ export interface UpdatePermissionDto {
   roles: string[];
 }
 
-export interface MenuEntity {
+export interface MenuMateEntity {
   id: string;
-  name: string;
+  menu_id: string;
+  title: string;
   path: string;
   icon: string;
   component: string;
+}
+
+export interface MenuEntity {
+  id: string;
+  mate: MenuMateEntity;
 }
 
 export interface CreateMenuRequest {
+  /** 菜单分组ID */
   id: string;
+  mate: MenuMateEntity;
   /** 菜单名称 */
-  name: string;
-  /** 菜单路径 */
-  path: string;
+  title: string;
   /** 菜单图标 */
   icon: string;
-  /** 组件 */
+  /** 菜单路径 */
+  path: string;
+  /** 菜单组件 */
   component: string;
   /** 父级菜单ID */
   parent_id: string;
+  /** 菜单分组ID */
+  groups: string[];
 }
 
 export interface UpdateMenuDto {
+  /** 菜单分组ID */
   id?: string;
+  mate?: MenuMateEntity;
   /** 菜单名称 */
-  name?: string;
-  /** 菜单路径 */
-  path?: string;
+  title?: string;
   /** 菜单图标 */
   icon?: string;
-  /** 组件 */
+  /** 菜单路径 */
+  path?: string;
+  /** 菜单组件 */
   component?: string;
   /** 父级菜单ID */
   parent_id?: string;
+  /** 菜单分组ID */
+  groups?: string[];
+}
+
+export interface CreateMenuMateDto {
+  id: string;
+  menu_id: string;
+  title: string;
+  path: string;
+  icon: string;
+  component: string;
+}
+
+export interface UpdateMenuMateDto {
+  id?: string;
+  menu_id?: string;
+  title?: string;
+  path?: string;
+  icon?: string;
+  component?: string;
+}
+
+export interface MenuGroupEntity {
+  id: string;
+  icon: string;
+  description: string;
+  title: string;
+  parent_id: object;
+  menus: MenuEntity[];
+}
+
+export interface CreateMenuGroupDto {
+  id: string;
+  icon: string;
+  description: string;
+  title: string;
+  parent_id: object;
+  menus: MenuEntity[];
+  menu_ids: string[];
+}
+
+export interface UpdateMenuGroupDto {
+  id?: string;
+  icon?: string;
+  description?: string;
+  title?: string;
+  parent_id?: object;
+  menus?: MenuEntity[];
+  menu_ids?: string[];
 }
 
 export interface TaskEntity {
@@ -1106,6 +1155,240 @@ export class Api<SecurityDataType extends unknown> {
   removeMenu = (id: string, params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/menu/${id}`,
+      method: "DELETE",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-mate
+   * @name CreateMenuMate
+   * @summary 创建一个菜单项
+   * @request POST:/api/v1/menu-mate
+   */
+  createMenuMate = (data: CreateMenuMateDto, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuMateEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-mate`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-mate
+   * @name QueryMenuMate
+   * @summary 查询菜单元数据
+   * @request GET:/api/v1/menu-mate
+   */
+  queryMenuMate = (params: RequestParams = {}) =>
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: MenuMateEntity[];
+        };
+      },
+      any
+    >({
+      path: `/api/v1/menu-mate`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-mate
+   * @name GetMenuMate
+   * @summary 查询菜单元数据
+   * @request GET:/api/v1/menu-mate/{id}
+   */
+  getMenuMate = (id: string, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuMateEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-mate/${id}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-mate
+   * @name UpdateMenuMate
+   * @summary 更新菜单元数据
+   * @request PATCH:/api/v1/menu-mate/{id}
+   */
+  updateMenuMate = (
+    id: string,
+    data: UpdateMenuMateDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuMateEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-mate/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-mate
+   * @name DeleteMenuMate
+   * @summary 删除菜单元数据
+   * @request DELETE:/api/v1/menu-mate/{id}
+   */
+  deleteMenuMate = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu-mate/${id}`,
+      method: "DELETE",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-group
+   * @name CreateMenuGroup
+   * @summary 创建一个菜单分组
+   * @request POST:/api/v1/menu-group
+   */
+  createMenuGroup = (data: CreateMenuGroupDto, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuGroupEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-group`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-group
+   * @name QueryMenuGroup
+   * @summary 查询菜单分组
+   * @request GET:/api/v1/menu-group
+   */
+  queryMenuGroup = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      title?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: MenuGroupEntity[];
+        };
+      },
+      any
+    >({
+      path: `/api/v1/menu-group`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-group
+   * @name QueryMenuGroupById
+   * @summary 根据id查询菜单分组
+   * @request GET:/api/v1/menu-group/{id}
+   */
+  queryMenuGroupById = (id: string, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuGroupEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-group/${id}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-group
+   * @name UpdateMenuGroup
+   * @summary 更新菜单分组信息
+   * @request PATCH:/api/v1/menu-group/{id}
+   */
+  updateMenuGroup = (
+    id: string,
+    data: UpdateMenuGroupDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: MenuGroupEntity;
+      },
+      any
+    >({
+      path: `/api/v1/menu-group/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags menu-group
+   * @name DeleteMenuGroup
+   * @summary 删除菜单分组
+   * @request DELETE:/api/v1/menu-group/{id}
+   */
+  deleteMenuGroup = (id: string, params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/menu-group/${id}`,
       method: "DELETE",
       ...params,
     });
