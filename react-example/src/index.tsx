@@ -3,7 +3,8 @@ import ReactDOM from "react-dom/client";
 import "./styles/globals.css";
 import { Root } from "./layouts/root-layout";
 import { Toaster } from "sonner";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
 async function bootstrap() {
   console.log("🚀 ~ bootstrap ~ bootstrap:");
 
@@ -13,7 +14,10 @@ async function bootstrap() {
     root.render(
       // <React.StrictMode>
       <>
-        <Root />
+        <QueryClientProvider client={queryClient}>
+          <Root />
+        </QueryClientProvider>
+
         <Toaster position="top-center" />
       </>
       // </React.StrictMode>

@@ -28,12 +28,12 @@ export function mergeHomeRoutes(menus: MenuEntity[]) {
   HomeRoute.children = [
     WelcomeRoute,
     ...menus
-      .filter((item) => !!item.path)
+      .filter((item) => item.mate.path)
       .map((item) => {
         return {
-          path: item.path,
-          name: item.name,
-          Component: components[item.component],
+          path: item.mate.path,
+          name: item.mate.title,
+          Component: components[item.mate.component],
         } as PermissionRoute;
       }),
   ];

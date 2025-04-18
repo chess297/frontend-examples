@@ -44,9 +44,9 @@ export function Root() {
   useEffect(() => {
     const menuRoutes: RouteObject[] = [
       ...menus.map((item) => {
-        const Component = components[item.component];
+        const Component = components[item.mate.component];
         return {
-          path: item.path,
+          path: item.mate.path,
           // biome-ignore lint/correctness/noConstantCondition: <explanation>
           element: true ? (
             <RequireAuth>
@@ -73,6 +73,8 @@ export function Root() {
       }
       return item;
     });
+    console.log("🚀 ~ newRoutes ~ newRoutes:", newRoutes);
+
     setRouter(createBrowserRouter(newRoutes));
   }, [menus]);
   return isLoading ? <Loading /> : <RouterProvider router={router} />;

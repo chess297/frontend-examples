@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useAuthStore } from "@/hooks/use-auth-store";
-import { ROUTES } from "@/router";
 import { Theme, useGlobalStore } from "@/hooks/use-global-store";
 import { toast } from "sonner";
 const formSchema = z.object({
