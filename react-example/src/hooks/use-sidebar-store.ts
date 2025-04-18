@@ -13,11 +13,11 @@ type SidebarAction = {
 export const useSidebarStore = create<SidebarState & SidebarAction>((set) => ({
   adminMenuGround: null,
   async fetchAdminMenuGround() {
-    const res = await api.queryMenuGroup({
-      title: "Admin",
-    });
+    const res = await api.findMenuGroupById(
+      "3a49c084-12e4-4a11-bd87-372d2ea36a36"
+    );
     if (res.status === 200) {
-      set({ adminMenuGround: res.data.data.records[0] });
+      set({ adminMenuGround: res.data.data });
     }
     return;
   },

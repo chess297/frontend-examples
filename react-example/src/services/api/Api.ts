@@ -1334,11 +1334,11 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags menu-group
-   * @name QueryMenuGroupById
+   * @name FindMenuGroupById
    * @summary 根据id查询菜单分组
    * @request GET:/api/v1/menu-group/{id}
    */
-  queryMenuGroupById = (id: string, params: RequestParams = {}) =>
+  findMenuGroupById = (id: string, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
         data?: MenuGroupEntity;
