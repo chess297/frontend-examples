@@ -15,9 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useForm } from "react-hook-form";
-import { Form, FormField } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -28,8 +25,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const form = useForm();
-
   const table = useReactTable({
     data,
     columns,

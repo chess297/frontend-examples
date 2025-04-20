@@ -32,7 +32,7 @@ export default function MenuManager() {
 
   return (
     <div>
-      <div className="query py-2">
+      <div className=" py-2">
         <AddDialog />
       </div>
       {/* biome-ignore lint/suspicious/noExplicitAny: <explanation> */}

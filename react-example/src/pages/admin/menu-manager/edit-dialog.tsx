@@ -24,19 +24,25 @@ import {
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/services";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, PenIcon } from "lucide-react";
+import type { MenuEntity } from "@/services/api/api";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  path: z.string().min(1, "Path is required"),
-  icon: z.string().min(1, "Icon is required"),
+  title: z.string().min(1, "菜单名称不能为空"),
+  path: z.string().min(1, "菜单路径不能为空"),
+  icon: z.string().min(1, "菜单图标不能为空"),
+  component: z.string().min(1, "组件路径不能为空"),
 });
 
-export default function AddDialog() {
+interface EditDialogProps {
+  menu: MenuEntity;
+}
+
+export default function EditDialog({ menu }: EditDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
@@ -44,41 +50,56 @@ export default function AddDialog() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      path: "",
-      icon: "",
+      title: menu.mate.title,
+      path: menu.mate.path,
+      icon: menu.mate.icon,
+      component: menu.mate.component,
     },
   });
+
+  // 当菜单数据变化时重置表单
+  useEffect(() => {
+    if (menu) {
+      form.reset({
+        title: menu.mate.title,
+        path: menu.mate.path,
+        icon: menu.mate.icon,
+        component: menu.mate.component,
+      });
+    }
+  }, [form, menu]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
-      // 创建菜单实体
-      const menuData = {
-        id: "", // 后端会生成
-        title: values.title,
-        path: values.path,
-        icon: values.icon,
-        component: `/pages${values.path}/index.tsx`, // 默认组件路径
-        parent_id: "", // 可以根据需要设置父级菜单ID
-        groups: [], // 可以根据需要设置菜单分组
+      // 创建更新的菜单数据
+      const updatedMenu = {
+        ...menu,
+        mate: {
+          ...menu.mate,
+          title: values.title,
+          path: values.path,
+          icon: values.icon,
+          component: values.component,
+        },
       };
 
-      const response = await api.createMenu(menuData);
+      const response = await api.updateMenu(menu.id, updatedMenu);
 
       if (response.status === 200) {
-        toast.success("菜单添加成功！");
-        // 重置表单
-        form.reset();
+        toast.success("菜单更新成功！");
         // 关闭弹窗
         setIsOpen(false);
         // 刷新菜单列表
         queryClient.invalidateQueries({ queryKey: ["menus"] });
       }
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    } catch (error: any) {
-      toast.error(error.message || "添加菜单失败，请重试");
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message || "更新菜单失败，请重试");
+      } else {
+        toast.error("更新菜单失败，请重试");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -87,14 +108,14 @@ export default function AddDialog() {
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button>添加菜单</Button>
+        <Button variant="ghost" size="icon">
+          <PenIcon className="h-4 w-4" />
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>添加菜单</AlertDialogTitle>
-          <AlertDialogDescription>
-            请填写菜单信息，创建新菜单项
-          </AlertDialogDescription>
+          <AlertDialogTitle>编辑菜单</AlertDialogTitle>
+          <AlertDialogDescription>修改菜单信息</AlertDialogDescription>
         </AlertDialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -104,12 +125,12 @@ export default function AddDialog() {
                 <FormItem>
                   <FormLabel>菜单名称</FormLabel>
                   <FormControl>
-                    <Input placeholder="用户管理" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-              name={"title"}
+              name="title"
             />
             <FormField
               control={form.control}
@@ -117,12 +138,12 @@ export default function AddDialog() {
                 <FormItem>
                   <FormLabel>菜单路径</FormLabel>
                   <FormControl>
-                    <Input placeholder="/admin/user-manager" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-              name={"path"}
+              name="path"
             />
             <FormField
               control={form.control}
@@ -130,12 +151,25 @@ export default function AddDialog() {
                 <FormItem>
                   <FormLabel>菜单图标</FormLabel>
                   <FormControl>
-                    <Input placeholder="users" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
-              name={"icon"}
+              name="icon"
+            />
+            <FormField
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>组件路径</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+              name="component"
             />
             <AlertDialogFooter className="mt-6">
               <AlertDialogCancel disabled={isSubmitting}>
@@ -152,7 +186,7 @@ export default function AddDialog() {
                     提交中...
                   </>
                 ) : (
-                  "确认添加"
+                  "保存"
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -9,6 +9,7 @@ import type { MenuEntity } from "@/services/api/api";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
+import EditDialog from "./edit-dialog";
 
 const columnHelper = createColumnHelper<MenuEntity>();
 
@@ -36,33 +37,41 @@ export const columns = [
   }),
   columnHelper.accessor((row) => row, {
     id: "actions",
-    header: "",
+    header: "操作",
     enableHiding: false,
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-          {/* <DropdownMenuItem
-            onClick={() => navigator.clipboard.writeText("test")}
-          >
-            Copy Menu ID
-          </DropdownMenuItem> */}
-          {/* <DropdownMenuSeparator /> */}
-          <DropdownMenuItem
-            onClick={() => {
-              console.log(row);
-            }}
-          >
-            delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      const menu = row.original;
+
+      return (
+        <div className="flex items-center">
+          <EditDialog menu={menu} />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+              {/* <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText("test")}
+              >
+                Copy Menu ID
+              </DropdownMenuItem> */}
+              {/* <DropdownMenuSeparator /> */}
+              <DropdownMenuItem
+                onClick={() => {
+                  console.log(row);
+                }}
+              >
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
   }),
 ];

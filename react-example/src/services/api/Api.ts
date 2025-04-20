@@ -213,13 +213,19 @@ export interface MenuMateEntity {
 
 export interface MenuEntity {
   id: string;
+  /** 菜单父级 */
+  parent: object;
+  /** 菜单子集 */
+  children: string[];
+  /** 菜单需要的权限 */
+  permissions: object;
+  /** 菜单元信息 */
   mate: MenuMateEntity;
 }
 
 export interface CreateMenuRequest {
   /** 菜单分组ID */
   id: string;
-  mate: MenuMateEntity;
   /** 菜单名称 */
   title: string;
   /** 菜单图标 */
@@ -237,7 +243,6 @@ export interface CreateMenuRequest {
 export interface UpdateMenuDto {
   /** 菜单分组ID */
   id?: string;
-  mate?: MenuMateEntity;
   /** 菜单名称 */
   title?: string;
   /** 菜单图标 */
