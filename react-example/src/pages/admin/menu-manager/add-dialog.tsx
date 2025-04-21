@@ -76,9 +76,10 @@ export default function AddDialog() {
         // 刷新菜单列表
         queryClient.invalidateQueries({ queryKey: ["menus"] });
       }
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    } catch (error: any) {
-      toast.error(error.message || "添加菜单失败，请重试");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "添加菜单失败，请重试";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

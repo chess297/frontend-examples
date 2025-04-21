@@ -12,10 +12,10 @@
 
 export interface SignupRequest {
   /** @example "user" */
-  name: string;
+  username: string;
   /** @example "user@example.com" */
   email: string;
-  /** @example "123456user" */
+  /** @example "123456" */
   password: string;
 }
 
@@ -39,7 +39,31 @@ export interface SuccessResponse {
 }
 
 export interface SigninResponse {
-  success: boolean;
+  /**
+   * 用户ID
+   * @example "1"
+   */
+  user_id?: string;
+  /**
+   * 用户邮箱
+   * @example "user@example.com"
+   */
+  email?: string;
+  /**
+   * 用户名称
+   * @example "John Doe"
+   */
+  username?: string;
+  /**
+   * 是否是管理员
+   * @example false
+   */
+  is_admin?: boolean;
+  /**
+   * 用户权限列表
+   * @example ["users:read","users:write"]
+   */
+  permissions?: string[];
 }
 
 export interface SigninRequest {
@@ -84,14 +108,16 @@ export interface UpdateProfileRequest {
   address?: string;
 }
 
-export type UserEntity = object;
+export interface UserEntity {
+  is_active: boolean;
+}
 
 export interface CreateUserRequest {
   /** @example "user" */
-  name: string;
+  username: string;
   /** @example "user@example.com" */
   email: string;
-  /** @example "123456user" */
+  /** @example "123456" */
   password: string;
   /** 用户角色id列表 */
   role: object;
@@ -202,30 +228,20 @@ export interface UpdatePermissionDto {
   roles: string[];
 }
 
-export interface MenuMateEntity {
+export interface MenuResponse {
+  /** 菜单ID */
   id: string;
-  menu_id: string;
+  /** 菜单名称 */
   title: string;
+  /** 菜单路径 */
   path: string;
+  /** 菜单图标 */
   icon: string;
+  /** 菜单组件 */
   component: string;
 }
 
-export interface MenuEntity {
-  id: string;
-  /** 菜单父级 */
-  parent: object;
-  /** 菜单子集 */
-  children: string[];
-  /** 菜单需要的权限 */
-  permissions: object;
-  /** 菜单元信息 */
-  mate: MenuMateEntity;
-}
-
 export interface CreateMenuRequest {
-  /** 菜单分组ID */
-  id: string;
   /** 菜单名称 */
   title: string;
   /** 菜单图标 */
@@ -240,9 +256,9 @@ export interface CreateMenuRequest {
   groups: string[];
 }
 
+export type Object = object;
+
 export interface UpdateMenuDto {
-  /** 菜单分组ID */
-  id?: string;
   /** 菜单名称 */
   title?: string;
   /** 菜单图标 */
@@ -255,6 +271,15 @@ export interface UpdateMenuDto {
   parent_id?: string;
   /** 菜单分组ID */
   groups?: string[];
+}
+
+export interface MenuMateEntity {
+  id: string;
+  menu_id: string;
+  title: string;
+  path: string;
+  icon: string;
+  component: string;
 }
 
 export interface CreateMenuMateDto {
@@ -275,6 +300,18 @@ export interface UpdateMenuMateDto {
   component?: string;
 }
 
+export interface MenuEntity {
+  id: string;
+  /** 菜单父级 */
+  parent: object;
+  /** 菜单子集 */
+  children: string[];
+  /** 菜单需要的权限 */
+  permissions: object;
+  /** 菜单元信息 */
+  mate: MenuMateEntity;
+}
+
 export interface MenuGroupEntity {
   id: string;
   icon: string;
@@ -284,24 +321,20 @@ export interface MenuGroupEntity {
   menus: MenuEntity[];
 }
 
-export interface CreateMenuGroupDto {
-  id: string;
+export interface CreateMenuGroupRequest {
   icon: string;
   description: string;
   title: string;
-  parent_id: object;
-  menus: MenuEntity[];
-  menu_ids: string[];
+  menus: string[];
+  permissions: string[];
 }
 
 export interface UpdateMenuGroupDto {
-  id?: string;
   icon?: string;
   description?: string;
   title?: string;
-  parent_id?: object;
-  menus?: MenuEntity[];
-  menu_ids?: string[];
+  menus?: string[];
+  permissions?: string[];
 }
 
 export interface TaskEntity {
@@ -936,52 +969,12 @@ export class Api<SecurityDataType extends unknown> {
     });
 
   /**
-   * @description 查询所有权限
-   *
-   * @tags permission
-   * @name FindManyPermission
-   * @summary 查询所有权限
-   * @request GET:/api/v1/permission
-   */
-  findManyPermission = (
-    query: {
-      /**
-       * 当前页码
-       * @default 1
-       */
-      page?: number;
-      /**
-       * 每页显示条数
-       * @default 10
-       */
-      limit?: number;
-      name: string;
-      resource: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.http.request<
-      PaginationResponse & {
-        data?: PaginationData & {
-          records?: PermissionEntity[];
-        };
-      },
-      any
-    >({
-      path: `/api/v1/permission`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
-
-  /**
    * @description 获取当前登录用户的权限
    *
    * @tags permission
    * @name GetUserPermission
    * @summary 获取当前登录用户的权限
-   * @request GET:/api/v1/permission/user/permission
+   * @request GET:/api/v1/permission
    */
   getUserPermission = (params: RequestParams = {}) =>
     this.http.request<
@@ -990,7 +983,7 @@ export class Api<SecurityDataType extends unknown> {
       },
       any
     >({
-      path: `/api/v1/permission/user/permission`,
+      path: `/api/v1/permission`,
       method: "GET",
       format: "json",
       ...params,
@@ -1070,7 +1063,7 @@ export class Api<SecurityDataType extends unknown> {
   createMenu = (data: CreateMenuRequest, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: MenuEntity;
+        data?: MenuResponse;
       },
       any
     >({
@@ -1090,17 +1083,36 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 获取菜单列表
    * @request GET:/api/v1/menu
    */
-  findManyMenu = (params: RequestParams = {}) =>
+  findManyMenu = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      /** 菜单组ID */
+      group_id?: string;
+      /** 父级菜单ID */
+      parent_id?: Object;
+    },
+    params: RequestParams = {},
+  ) =>
     this.http.request<
       PaginationResponse & {
         data?: PaginationData & {
-          records?: MenuEntity[];
+          records?: MenuResponse[];
         };
       },
       any
     >({
       path: `/api/v1/menu`,
       method: "GET",
+      query: query,
       format: "json",
       ...params,
     });
@@ -1116,7 +1128,7 @@ export class Api<SecurityDataType extends unknown> {
   findOneMenu = (id: string, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: MenuEntity;
+        data?: MenuResponse;
       },
       any
     >({
@@ -1137,7 +1149,7 @@ export class Api<SecurityDataType extends unknown> {
   updateMenu = (id: string, data: UpdateMenuDto, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: MenuEntity;
+        data?: MenuResponse;
       },
       any
     >({
@@ -1195,7 +1207,31 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 查询菜单元数据
    * @request GET:/api/v1/menu-mate
    */
-  queryMenuMate = (params: RequestParams = {}) =>
+  queryMenuMate = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      /** 菜单ID */
+      menu_id?: string;
+      /** 标题 */
+      title?: string;
+      /** 路径 */
+      path?: string;
+      /** 图标 */
+      icon?: string;
+      /** 组件 */
+      component?: string;
+    },
+    params: RequestParams = {},
+  ) =>
     this.http.request<
       PaginationResponse & {
         data?: PaginationData & {
@@ -1206,6 +1242,7 @@ export class Api<SecurityDataType extends unknown> {
     >({
       path: `/api/v1/menu-mate`,
       method: "GET",
+      query: query,
       format: "json",
       ...params,
     });
@@ -1281,7 +1318,10 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 创建一个菜单分组
    * @request POST:/api/v1/menu-group
    */
-  createMenuGroup = (data: CreateMenuGroupDto, params: RequestParams = {}) =>
+  createMenuGroup = (
+    data: CreateMenuGroupRequest,
+    params: RequestParams = {},
+  ) =>
     this.http.request<
       SuccessResponse & {
         data?: MenuGroupEntity;

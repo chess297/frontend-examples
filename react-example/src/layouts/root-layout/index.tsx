@@ -44,9 +44,9 @@ export function Root() {
   useEffect(() => {
     const menuRoutes: RouteObject[] = [
       ...menus.map((item) => {
-        const Component = components[item.mate.component];
+        const Component = components[item.component];
         return {
-          path: item.mate.path,
+          path: item.path,
           // biome-ignore lint/correctness/noConstantCondition: <explanation>
           element: true ? (
             <RequireAuth>

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import type { UserEntity } from "@/services/api/api"; // Assume UserEntity exists
+import type { RoleEntity } from "@/services/api/api"; // Assume RoleEntity exists
 import { api } from "@/services";
 import Loading from "@/components/loading";
 
@@ -24,132 +24,117 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DataTable } from "@/components/data-table"; // Updated import path
-import { createColumns } from "./columns"; // To be created
+// 使用公共DataTable组件
+import { DataTable } from "@/components/data-table";
+import { createColumns } from "./columns";
 
-import AddDialog from "./add-dialog"; // To be created
-import EditDialog from "./edit-dialog"; // To be created
+import AddDialog from "./add-dialog";
+import EditDialog from "./edit-dialog";
 import { toast } from "sonner";
-import { SearchForm } from "./search-form"; // To be created
-import type { UserSearchParams } from "./search-form"; // To be created
+import { SearchForm } from "./search-form";
+import type { RoleSearchParams } from "./search-form";
 
-export default function UserManager() {
+export default function RoleManager() {
   const queryClient = useQueryClient();
-  const [searchParams, setSearchParams] = useState<UserSearchParams>({});
+  const [searchParams, setSearchParams] = useState<RoleSearchParams>({});
   const [isFiltering, setIsFiltering] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10); // Or make it configurable
+  const [pageSize] = useState(10);
 
-  // Edit user related state
+  // 编辑角色相关状态
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserEntity | null>(null);
+  const [selectedRole, setSelectedRole] = useState<RoleEntity | null>(null);
 
-  // Delete confirmation dialog related state
+  // 删除确认对话框相关状态
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
 
-  // Fetch user data using react-query
+  // 使用react-query获取角色数据
   const { data, isLoading } = useQuery({
-    // Add searchParams to queryKey if API supports server-side filtering
-    queryKey: ["users", currentPage, pageSize, searchParams],
+    queryKey: ["roles", currentPage, pageSize, searchParams],
     queryFn: async () => {
-      // Construct API query parameters
       const queryParams = {
         page: currentPage,
         limit: pageSize,
-        // Add other search params based on UserSearchParams
-        username: searchParams.username || "",
-        email: searchParams.email || "",
-        // ... other fields
+        name: searchParams.name || "",
+        // 可以根据API添加更多查询参数
       };
-
-      // Assume api.findManyUser exists and accepts pagination/filtering params
-      const response = await api.userControllerFindAllV1(queryParams);
-      return response.data.data; // Adjust based on actual API response structure
+      // 调用角色列表API
+      const response = await api.roleControllerFindAllV1(queryParams);
+      return response.data.data;
     },
-    // Keep previous data while fetching new data for smoother pagination
-    // keepPreviousData: true, // Uncomment if using server-side pagination/filtering primarily
   });
 
-  // Handle editing a user
-  const handleEdit = (user: UserEntity) => {
-    setSelectedUser(user);
+  // 处理编辑角色
+  const handleEdit = (role: RoleEntity) => {
+    setSelectedRole(role);
     setEditDialogOpen(true);
   };
 
-  // Handle closing the edit dialog
+  // 处理关闭编辑对话框
   const handleCloseEditDialog = () => {
     setEditDialogOpen(false);
-    setSelectedUser(null);
+    setSelectedRole(null);
   };
 
-  // Handle deleting a user
+  // 处理删除角色
   const handleDelete = (id: string) => {
-    setUserToDelete(id);
+    setRoleToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  // Confirm user deletion
+  // 确认删除角色
   const confirmDelete = async () => {
-    if (!userToDelete) return;
+    if (!roleToDelete) return;
 
     try {
-      // Assume api.removeUser exists
-      await api.removeUser(userToDelete);
-      toast.success("用户删除成功");
+      await api.removeRole(roleToDelete);
+      toast.success("角色删除成功");
 
-      // Refresh user list
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      // 刷新角色列表
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
 
-      // Reset state
-      setUserToDelete(null);
+      // 重置状态
+      setRoleToDelete(null);
       setDeleteDialogOpen(false);
 
-      // Optional: Check if the deleted user was the last one on the current page
+      // 如果当前页只有一条记录且删除后，回到前一页
       if (data?.records?.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
     } catch (error) {
-      console.error("删除用户失败:", error);
-      toast.error("删除用户失败");
+      console.error("删除角色失败:", error);
+      toast.error("删除角色失败");
     }
   };
 
-  // Handle search/filtering
-  const handleSearch = (params: UserSearchParams) => {
+  // 处理搜索
+  const handleSearch = (params: RoleSearchParams) => {
     setSearchParams(params);
-    setCurrentPage(1); // Reset to the first page on new search
+    setCurrentPage(1); // 重置为第一页
 
-    // Determine if filtering is active
+    // 如果有搜索参数，设置为过滤模式
     setIsFiltering(
-      Object.keys(params).some((key) => !!params[key as keyof UserSearchParams])
+      Object.keys(params).some((key) => !!params[key as keyof RoleSearchParams])
     );
 
-    // Invalidate query to refetch data with new search params
-    // This is needed if filtering/searching is done server-side
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-
-    // If filtering is purely client-side (not recommended for large datasets):
-    // You would filter the 'data?.records' here and update a separate state variable
-    // like in the menu-manager example. For user management, server-side is better.
+    // 刷新角色列表
+    queryClient.invalidateQueries({ queryKey: ["roles"] });
   };
 
-  // Create table column definitions
-  const columns = createColumns(handleEdit, handleDelete); // Pass handlers to columns
+  // 创建表格列定义
+  const columns = createColumns(handleEdit, handleDelete);
 
-  if (isLoading && !data) return <Loading />; // Show loading only on initial load
+  if (isLoading && !data) return <Loading />;
 
-  // Calculate total pages for pagination
   const totalRecords = data?.total || 0;
   const totalPages = Math.ceil(totalRecords / pageSize);
-
-  // Data to display in the table
   const recordsToDisplay = data?.records || [];
 
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">用户管理</h2>
+        <h2 className="text-2xl font-semibold">角色管理</h2>
         <AddDialog />
       </div>
 
@@ -160,13 +145,13 @@ export default function UserManager() {
         <div>
           {isFiltering
             ? `查询结果: 共找到 ${totalRecords} 条记录`
-            : `共有 ${totalRecords} 条用户记录`}
+            : `共有 ${totalRecords} 条角色记录`}
         </div>
         {/* 可以在这里添加其他操作按钮，如批量导入导出等 */}
       </div>
 
       {/* 数据表格 */}
-      <DataTable<UserEntity, unknown>
+      <DataTable<RoleEntity, unknown>
         columns={columns}
         data={recordsToDisplay}
         isLoading={isLoading}
@@ -190,7 +175,7 @@ export default function UserManager() {
               />
             </PaginationItem>
 
-            {/* Dynamically generate page links */}
+            {/* 动态生成页码链接 */}
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .filter(
                 (page) =>
@@ -224,28 +209,6 @@ export default function UserManager() {
                 <PaginationEllipsis />
               </PaginationItem>
             )}
-            {totalPages > 1 &&
-              !Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(
-                  (page) =>
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 2 && page <= currentPage + 2)
-                )
-                .includes(totalPages) && (
-                <PaginationItem key={totalPages}>
-                  <PaginationLink
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage(totalPages);
-                    }}
-                    isActive={currentPage === totalPages}
-                  >
-                    {totalPages}
-                  </PaginationLink>
-                </PaginationItem>
-              )}
 
             <PaginationItem>
               <PaginationNext
@@ -265,26 +228,28 @@ export default function UserManager() {
           </PaginationContent>
         </Pagination>
       )}
-      {/* Edit User Dialog */}
+
+      {/* 编辑角色对话框 */}
       <EditDialog
-        user={selectedUser}
+        role={selectedRole}
         open={editDialogOpen}
         onClose={handleCloseEditDialog}
       />
-      {/* Delete Confirmation Dialog */}
+
+      {/* 删除确认对话框 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              确定要删除此用户吗？此操作不可撤销。
+              确定要删除此角色吗？此操作不可撤销。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90" // Consistent destructive style
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               删除
             </AlertDialogAction>

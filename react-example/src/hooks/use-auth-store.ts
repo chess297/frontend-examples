@@ -1,7 +1,7 @@
 import { api } from "@/services";
 import type {
   FullProfile,
-  MenuEntity,
+  MenuResponse,
   SigninRequest,
   SignupRequest,
 } from "@/services/api/api";
@@ -16,7 +16,7 @@ interface UserPermission {
 type AuthStoreState = {
   is_login: boolean;
   // 该用户可以访问的路由列表
-  menus: MenuEntity[];
+  menus: MenuResponse[];
   // 该用户的权限列表
   permissions: UserPermission[];
   user_info: FullProfile | null;
@@ -28,7 +28,7 @@ type AuthStoreActions = {
   logout(): void;
   getUserInfo(): Promise<void>;
   getUserPermission(): Promise<void>;
-  setMenus(menus: MenuEntity[]): Promise<void>;
+  setMenus(menus: MenuResponse[]): Promise<void>;
   updateLoginStatus(): void;
 };
 

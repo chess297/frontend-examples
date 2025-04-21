@@ -19,11 +19,13 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  isLoading?: boolean; // Added optional loading state prop
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  isLoading = false, // Default to false
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -53,7 +55,13 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                加载中...
+              </TableCell>
+            </TableRow>
+          ) : table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
@@ -69,7 +77,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                暂无数据
               </TableCell>
             </TableRow>
           )}

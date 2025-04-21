@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/hooks/use-auth-store";
 import { ROUTES } from "@/router";
 const formSchema = z.object({
-  name: z.string(),
+  username: z.string(),
   email: z.string().email("请输入邮箱格式"),
   password: z.string().min(6, "最小6位").max(20, "最大20位"),
 });
@@ -27,7 +27,7 @@ export function SignupForm({ className }: React.ComponentProps<"form">) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "example",
+      username: "example",
       email: "user@example.com",
       password: "123456",
     },
@@ -35,18 +35,13 @@ export function SignupForm({ className }: React.ComponentProps<"form">) {
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    register(values)
-      .then(() => {
-        toast("register success", {
-          onDismiss() {
-            navigate(ROUTES.SIGNUP);
-          },
-        });
-      })
-      .catch((err) => {
-        const res = err.response;
-        toast(res.data.message);
+    register(values).then(() => {
+      toast("register success", {
+        onDismiss() {
+          navigate(ROUTES.SIGNUP);
+        },
       });
+    });
   }
   return (
     <Form {...form}>
@@ -63,7 +58,7 @@ export function SignupForm({ className }: React.ComponentProps<"form">) {
         <div className="grid gap-6">
           <div className="grid gap-3">
             <FormField
-              name="name"
+              name="username"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
