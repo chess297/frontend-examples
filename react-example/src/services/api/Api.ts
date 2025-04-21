@@ -102,7 +102,6 @@ export interface FullProfile {
 }
 
 export interface UpdateProfileRequest {
-  user_id?: string;
   phone?: string;
   country_code?: string;
   address?: string;
@@ -638,7 +637,7 @@ export class Api<SecurityDataType extends unknown> {
    * @tags user
    * @name GetUserProfile
    * @summary 获取当前用户的信息
-   * @request GET:/api/v1/user/profile
+   * @request GET:/api/v1/profile
    */
   getUserProfile = (params: RequestParams = {}) =>
     this.http.request<
@@ -647,7 +646,7 @@ export class Api<SecurityDataType extends unknown> {
       },
       any
     >({
-      path: `/api/v1/user/profile`,
+      path: `/api/v1/profile`,
       method: "GET",
       format: "json",
       ...params,
@@ -659,7 +658,7 @@ export class Api<SecurityDataType extends unknown> {
    * @tags user
    * @name UpdateUserProfile
    * @summary 修改当前用户信息
-   * @request PATCH:/api/v1/user/profile
+   * @request PATCH:/api/v1/profile
    */
   updateUserProfile = (
     data: UpdateProfileRequest,
@@ -671,7 +670,7 @@ export class Api<SecurityDataType extends unknown> {
       },
       any
     >({
-      path: `/api/v1/user/profile`,
+      path: `/api/v1/profile`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
@@ -685,7 +684,7 @@ export class Api<SecurityDataType extends unknown> {
    * @tags user
    * @name ProfileControllerFindOneV1
    * @summary 获取路径id用户信息
-   * @request GET:/api/v1/user/profile/{id}
+   * @request GET:/api/v1/profile/{id}
    */
   profileControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
     this.http.request<
@@ -694,7 +693,7 @@ export class Api<SecurityDataType extends unknown> {
       },
       any
     >({
-      path: `/api/v1/user/profile/${id}`,
+      path: `/api/v1/profile/${id}`,
       method: "GET",
       format: "json",
       ...params,
@@ -706,7 +705,7 @@ export class Api<SecurityDataType extends unknown> {
    * @tags user
    * @name ProfileControllerUpdateOneV1
    * @summary 修改路径id用户信息
-   * @request PATCH:/api/v1/user/profile/{id}
+   * @request PATCH:/api/v1/profile/{id}
    */
   profileControllerUpdateOneV1 = (
     id: string,
@@ -719,7 +718,7 @@ export class Api<SecurityDataType extends unknown> {
       },
       any
     >({
-      path: `/api/v1/user/profile/${id}`,
+      path: `/api/v1/profile/${id}`,
       method: "PATCH",
       body: data,
       type: ContentType.Json,
