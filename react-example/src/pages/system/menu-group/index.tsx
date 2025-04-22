@@ -4,13 +4,12 @@ import { toast } from "sonner";
 
 import { ConfigTable } from "@/components/system-config/table-config/config-table";
 import { createColumns } from "./columns";
-import AddUserDialog from "./add-dialog";
-import EditUserDialog from "./edit-dialog";
-import ResetPasswordDialog from "./reset-password-dialog";
-import { UserSearchForm } from "./search-form";
+import AddMenuGroupDialog from "./add-dialog";
+import { MenuGroupSearchForm } from "./search-form";
+import EditMenuGroupDialog from "./edit-dialog";
 import * as api from "./api";
-import type { UserSearchParams } from "./api";
-import type { UserEntity } from "@/services/api/api";
+import type { MenuGroupSearchParams } from "./api";
+import type { MenuGroupEntity } from "@/services/api/api";
 import Loading from "@/components/loading";
 import {
   AlertDialog,
@@ -23,100 +22,82 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 
-export default function UserManager() {
+export default function MenuGroupManager() {
   const queryClient = useQueryClient();
 
   // 搜索相关状态
-  const [searchParams, setSearchParams] = useState<UserSearchParams>({});
+  const [searchParams, setSearchParams] = useState<MenuGroupSearchParams>({});
   const [isFiltering, setIsFiltering] = useState(false);
-  const [filteredData, setFilteredData] = useState<UserEntity[]>([]);
+  const [filteredData, setFilteredData] = useState<MenuGroupEntity[]>([]);
 
   // 分页相关状态
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(2);
+  const [pageSize] = useState(10);
 
   // 编辑和删除相关状态
-  const [selectedUser, setSelectedUser] = useState<UserEntity | null>(null);
+  const [selectedMenuGroup, setSelectedMenuGroup] =
+    useState<MenuGroupEntity | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [menuGroupToDelete, setMenuGroupToDelete] = useState<string | null>(
+    null
+  );
 
-  // 重置密码相关状态
-  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
-  const [userToResetPassword, setUserToResetPassword] =
-    useState<UserEntity | null>(null);
-
-  // 使用react-query获取用户数据
+  // 使用react-query获取菜单分组数据
   const { data, isLoading } = useQuery({
-    queryKey: ["users", currentPage, pageSize],
+    queryKey: ["menuGroups", currentPage, pageSize, searchParams.title],
     queryFn: async () => {
       const queryParams = {
         page: currentPage,
         limit: pageSize,
-        username: searchParams.username || "",
-        email: searchParams.email || "",
+        title: searchParams.title || "",
       };
 
       return await api.getList(queryParams);
     },
   });
 
-  // 处理编辑用户
-  const handleEdit = (user: UserEntity) => {
-    setSelectedUser(user);
+  // 处理编辑菜单分组
+  const handleEdit = (menuGroup: MenuGroupEntity) => {
+    setSelectedMenuGroup(menuGroup);
     setEditDialogOpen(true);
   };
 
   // 处理关闭编辑对话框
   const handleCloseEditDialog = () => {
     setEditDialogOpen(false);
-    setSelectedUser(null);
+    setSelectedMenuGroup(null);
   };
 
-  // 处理重置密码
-  const handleResetPassword = (id: string) => {
-    const user = data?.records.find((user) => user.id === id);
-    if (user) {
-      setUserToResetPassword(user);
-      setResetPasswordDialogOpen(true);
-    }
-  };
-
-  // 处理关闭重置密码对话框
-  const handleCloseResetPasswordDialog = () => {
-    setResetPasswordDialogOpen(false);
-    setUserToResetPassword(null);
-  };
-
-  // 处理删除用户
+  // 处理删除菜单分组
   const handleDelete = (id: string) => {
-    setUserToDelete(id);
+    setMenuGroupToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  // 确认删除用户
+  // 确认删除菜单分组
   const confirmDelete = async () => {
-    if (!userToDelete) return;
+    if (!menuGroupToDelete) return;
 
     try {
-      await api.remove(userToDelete);
-      toast.success("用户删除成功");
+      await api.remove(menuGroupToDelete);
+      toast.success("菜单分组删除成功");
 
-      // 刷新用户列表
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      // 刷新菜单分组列表
+      queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
 
       // 重置状态
-      setUserToDelete(null);
+      setMenuGroupToDelete(null);
       setDeleteDialogOpen(false);
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "删除用户失败，请重试";
+        error instanceof Error ? error.message : "删除菜单分组失败，请重试";
       toast.error(errorMessage);
     }
   };
 
   // 处理搜索
-  const handleSearch = (params: UserSearchParams) => {
+  const handleSearch = (params: MenuGroupSearchParams) => {
     setSearchParams(params);
     setCurrentPage(1); // 重置为第一页
 
@@ -142,7 +123,7 @@ export default function UserManager() {
   };
 
   // 创建表格列定义
-  const columns = createColumns(handleEdit, handleDelete, handleResetPassword);
+  const columns = createColumns(handleEdit, handleDelete);
 
   // 加载状态
   if (isLoading && !data) return <Loading />;
@@ -155,18 +136,18 @@ export default function UserManager() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">用户管理</h2>
-        <AddUserDialog />
+        <h2 className="text-2xl font-semibold">菜单分组管理</h2>
+        <AddMenuGroupDialog />
       </div>
 
       {/* 查询表单 */}
-      <UserSearchForm onSearch={handleSearch} />
+      <MenuGroupSearchForm onSearch={handleSearch} />
 
       {/* 表格信息提示 */}
       <div className="text-sm text-muted-foreground mb-4">
         {isFiltering
           ? `查询结果: 共找到 ${totalRecords} 条记录`
-          : `共有 ${totalRecords} 条用户记录`}
+          : `共有 ${totalRecords} 条菜单分组记录`}
       </div>
 
       {/* 数据表格 */}
@@ -178,27 +159,17 @@ export default function UserManager() {
         pageSize={pageSize}
         totalItems={totalRecords}
         totalPages={totalPages}
-        searchKey="username"
-        searchPlaceholder="搜索用户名..."
+        searchKey="title"
+        searchPlaceholder="搜索分组名称..."
         onPageChange={handlePageChange}
       />
 
-      {/* 编辑用户对话框 */}
-      {selectedUser && (
-        <EditUserDialog
-          user={selectedUser}
+      {/* 编辑菜单分组对话框 */}
+      {selectedMenuGroup && (
+        <EditMenuGroupDialog
+          menuGroup={selectedMenuGroup}
           open={editDialogOpen}
           onClose={handleCloseEditDialog}
-        />
-      )}
-
-      {/* 重置密码对话框 */}
-      {userToResetPassword && (
-        <ResetPasswordDialog
-          userId={userToResetPassword.id}
-          username={userToResetPassword.username}
-          open={resetPasswordDialogOpen}
-          onClose={handleCloseResetPasswordDialog}
         />
       )}
 
@@ -208,7 +179,7 @@ export default function UserManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              确定要删除此用户吗？此操作不可撤销。
+              确定要删除此菜单分组吗？此操作不可撤销，可能会影响关联的菜单。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

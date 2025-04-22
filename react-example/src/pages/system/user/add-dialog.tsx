@@ -51,7 +51,7 @@ export default function AddUserDialog() {
       phone: "",
       country_code: "",
       address: "",
-      roleIds: [],
+      role_ids: [],
     };
 
     // 调用创建用户服务

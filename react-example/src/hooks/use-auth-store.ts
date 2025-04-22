@@ -4,6 +4,7 @@ import type {
   SigninRequest,
   SignupRequest,
   SigninResponse,
+  UserResponse,
 } from "@/services/api/api";
 import { getUserIdCookie } from "@/utils";
 import { create } from "zustand";
@@ -19,7 +20,7 @@ type AuthStoreState = {
   menus: MenuResponse[];
   // 该用户的权限列表
   permissions: UserPermission[];
-  user_info: SigninResponse | null;
+  user_info: UserResponse | null;
 };
 
 type AuthStoreActions = {

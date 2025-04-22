@@ -276,6 +276,8 @@ export interface UserEntity {
   phone: string;
   country_code: string;
   address: string;
+  /** 用户头像URL */
+  avatar_url?: string;
 }
 
 export interface CreateUserRequest {
@@ -287,7 +289,7 @@ export interface CreateUserRequest {
   country_code: string;
   address: string;
   /** 用户角色id列表 */
-  roleIds: string[];
+  role_ids: string[];
 }
 
 export interface PaginationData {
@@ -325,6 +327,8 @@ export interface UserResponse {
   phone: string;
   country_code: string;
   address: string;
+  /** 用户头像URL */
+  avatar_url?: string;
 }
 
 export interface UpdateUserRequest {
@@ -336,7 +340,7 @@ export interface UpdateUserRequest {
   country_code?: string;
   address?: string;
   /** 用户角色id列表 */
-  roleIds?: string[];
+  role_ids?: string[];
 }
 
 export interface RemoveUserRequest {
@@ -344,6 +348,23 @@ export interface RemoveUserRequest {
   id: string;
   /** 批量删除的用户id列表 */
   ids: string[];
+}
+
+export interface UpdateAvatarResponse {
+  /** 用户ID */
+  id: string;
+  /** 用户名 */
+  username: string;
+  /** 头像URL */
+  avatar_url: string;
+}
+
+export interface UpdateAvatarRequest {
+  /**
+   * 上传的文件
+   * @format binary
+   */
+  file: File;
 }
 
 export interface CreateRoleResponse {
@@ -562,7 +583,7 @@ export interface CreateMenuGroupRequest {
   permissions: string[];
 }
 
-export interface UpdateMenuGroupDto {
+export interface UpdateMenuGroupRequest {
   icon?: string;
   description?: string;
   title?: string;
@@ -1242,6 +1263,86 @@ export class Api<SecurityDataType extends unknown> {
   /**
    * No description
    *
+   * @tags user
+   * @name UploadAvatar
+   * @summary 上传用户头像
+   * @request POST:/api/v1/user/avatar
+   */
+  uploadAvatar = (data: UpdateAvatarRequest, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: UpdateAvatarResponse;
+      },
+      any
+    >({
+      path: `/api/v1/user/avatar`,
+      method: "POST",
+      body: data,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags attachment
+   * @name AttachmentControllerUploadFileV1
+   * @summary 上传文件
+   * @request POST:/api/v1/attachment/upload
+   */
+  attachmentControllerUploadFileV1 = (
+    query: {
+      storageType: any;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/attachment/upload`,
+      method: "POST",
+      query: query,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags attachment
+   * @name AttachmentControllerGetAttachmentByIdV1
+   * @summary 通过ID获取附件信息
+   * @request GET:/api/v1/attachment/{id}
+   */
+  attachmentControllerGetAttachmentByIdV1 = (
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/attachment/${id}`,
+      method: "GET",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags attachment
+   * @name AttachmentControllerServeFileV1
+   * @summary 下载/查看文件
+   * @request GET:/api/v1/attachment/file/{filename}
+   */
+  attachmentControllerServeFileV1 = (
+    filename: string,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/attachment/file/${filename}`,
+      method: "GET",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
    * @tags role
    * @name RoleControllerCreateV1
    * @summary 创建角色
@@ -1871,7 +1972,7 @@ export class Api<SecurityDataType extends unknown> {
    */
   updateMenuGroup = (
     id: string,
-    data: UpdateMenuGroupDto,
+    data: UpdateMenuGroupRequest,
     params: RequestParams = {},
   ) =>
     this.http.request<
