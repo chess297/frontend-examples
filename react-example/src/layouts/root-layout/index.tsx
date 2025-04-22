@@ -11,7 +11,9 @@ import { useAuthStore } from "@/hooks";
 import Loading from "@/components/loading";
 import { api } from "@/services";
 import { useSidebarStore } from "@/hooks/use-sidebar-store";
+import { SystemErrorOverlay } from "@/components/system-error";
 import type { MenuResponse } from "@/services/api/api";
+import { useGlobalStore } from "@/hooks/use-global-store";
 
 export function LazyComponent({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<Loading />}>{children}</Suspense>;
@@ -37,6 +39,7 @@ export function Root() {
   const { is_login, menus, setMenus, getUserInfo, getUserPermission } =
     useAuthStore();
   const { fetchAdminMenuGround } = useSidebarStore();
+  const { setError } = useGlobalStore();
 
   useEffect(() => {
     if (initCalledRef.current) return;
@@ -52,11 +55,15 @@ export function Root() {
           getUserPermission();
         }
       })
+      .catch((error) => {
+        setError(`发生了系统错误: ${error.message}`);
+      })
       .finally(() => {
         setRight();
       });
   }, [
     is_login,
+    setError,
     setMenus,
     setRight,
     getUserInfo,
@@ -100,5 +107,10 @@ export function Root() {
 
     setRouter(createBrowserRouter(newRoutes));
   }, [menus]);
-  return isLoading ? <Loading /> : <RouterProvider router={router} />;
+  return (
+    <>
+      {isLoading ? <Loading /> : <RouterProvider router={router} />}
+      <SystemErrorOverlay />
+    </>
+  );
 }
