@@ -74,7 +74,7 @@ export function Root() {
   useEffect(() => {
     const menuRoutes: RouteObject[] = [
       ...menus.map((item) => {
-        const Component = components[item.component];
+        const Component = components[`./${item.component}.tsx`];
         return {
           path: item.path,
           // biome-ignore lint/correctness/noConstantCondition: <explanation>
