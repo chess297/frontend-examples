@@ -1,9 +1,9 @@
 import { api } from "@/services";
 import type {
-  FullProfile,
   MenuResponse,
   SigninRequest,
   SignupRequest,
+  SigninResponse,
 } from "@/services/api/api";
 import { getUserIdCookie } from "@/utils";
 import { create } from "zustand";
@@ -19,7 +19,7 @@ type AuthStoreState = {
   menus: MenuResponse[];
   // 该用户的权限列表
   permissions: UserPermission[];
-  user_info: FullProfile | null;
+  user_info: SigninResponse | null;
 };
 
 type AuthStoreActions = {
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthStoreState & AuthStoreActions>(
           return;
         }
         await api
-          .getUserProfile()
+          .getUserInfo()
           .then((res) => {
             set({
               user_info: res.data.data,

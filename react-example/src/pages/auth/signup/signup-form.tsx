@@ -37,8 +37,8 @@ export function SignupForm({ className }: React.ComponentProps<"form">) {
   function onSubmit(values: z.infer<typeof formSchema>) {
     register(values).then(() => {
       toast("register success", {
-        onDismiss() {
-          navigate(ROUTES.SIGNUP);
+        onAutoClose() {
+          navigate(ROUTES.SIGNIN);
         },
       });
     });

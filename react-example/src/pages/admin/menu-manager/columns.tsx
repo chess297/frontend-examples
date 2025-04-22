@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { MenuEntity } from "@/services/api/api";
-import { ColumnDef, Row, Column } from "@tanstack/react-table";
+import type { ColumnDef, Row, Column } from "@tanstack/react-table";
 import { Edit, Trash, FileEdit } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import EditDialog from "./edit-dialog";

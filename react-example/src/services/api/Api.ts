@@ -92,22 +92,12 @@ export interface BadResponse {
   message: string;
 }
 
-export interface FullProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  country_code: string;
-  address: string;
-}
-
-export interface UpdateProfileRequest {
-  phone?: string;
-  country_code?: string;
-  address?: string;
-}
-
 export interface UserEntity {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  roles: string[];
   is_active: boolean;
 }
 
@@ -635,109 +625,11 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name GetUserProfile
-   * @summary 获取当前用户的信息
-   * @request GET:/api/v1/profile
-   */
-  getUserProfile = (params: RequestParams = {}) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: FullProfile;
-      },
-      any
-    >({
-      path: `/api/v1/profile`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags user
-   * @name UpdateUserProfile
-   * @summary 修改当前用户信息
-   * @request PATCH:/api/v1/profile
-   */
-  updateUserProfile = (
-    data: UpdateProfileRequest,
-    params: RequestParams = {},
-  ) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: FullProfile;
-      },
-      any
-    >({
-      path: `/api/v1/profile`,
-      method: "PATCH",
-      body: data,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags user
-   * @name ProfileControllerFindOneV1
-   * @summary 获取路径id用户信息
-   * @request GET:/api/v1/profile/{id}
-   */
-  profileControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: FullProfile;
-      },
-      any
-    >({
-      path: `/api/v1/profile/${id}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags user
-   * @name ProfileControllerUpdateOneV1
-   * @summary 修改路径id用户信息
-   * @request PATCH:/api/v1/profile/{id}
-   */
-  profileControllerUpdateOneV1 = (
-    id: string,
-    data: UpdateProfileRequest,
-    params: RequestParams = {},
-  ) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: FullProfile;
-      },
-      any
-    >({
-      path: `/api/v1/profile/${id}`,
-      method: "PATCH",
-      body: data,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags user
-   * @name UserControllerCreateV1
+   * @name CreateUser
    * @summary 创建新用户
    * @request POST:/api/v1/user
    */
-  userControllerCreateV1 = (
-    data: CreateUserRequest,
-    params: RequestParams = {},
-  ) =>
+  createUser = (data: CreateUserRequest, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
         data?: UserEntity;
@@ -756,11 +648,11 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name UserControllerFindAllV1
+   * @name QueryUsers
    * @summary 查询多个用户
    * @request GET:/api/v1/user
    */
-  userControllerFindAllV1 = (params: RequestParams = {}) =>
+  queryUsers = (params: RequestParams = {}) =>
     this.http.request<
       PaginationResponse & {
         data?: PaginationData & {
@@ -779,11 +671,32 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name UserControllerFindOnV1
+   * @name GetUserInfo
+   * @summary 获取用户信息
+   * @request GET:/api/v1/user/info
+   */
+  getUserInfo = (params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: UserEntity;
+      },
+      any
+    >({
+      path: `/api/v1/user/info`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags user
+   * @name QueryUser
    * @summary 查询单个用户
    * @request GET:/api/v1/user/{id}
    */
-  userControllerFindOnV1 = (id: string, params: RequestParams = {}) =>
+  queryUser = (id: string, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
         data?: UserEntity;
@@ -800,11 +713,11 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name UserControllerRemoveV1
+   * @name RemoveUser
    * @summary 删除单个或多个用户
    * @request DELETE:/api/v1/user/{id}
    */
-  userControllerRemoveV1 = (
+  removeUser = (
     id: string,
     data: RemoveUserRequest,
     params: RequestParams = {},

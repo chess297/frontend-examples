@@ -59,13 +59,13 @@ export function NavUser({
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
                   src={user.avatar}
-                  alt={user_info?.id ?? user.name}
+                  alt={user_info?.user_id ?? user.name}
                 />
                 <AvatarFallback className="rounded-lg">CH</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {user_info?.name ?? user.name}
+                  {user_info?.username ?? user.name}
                 </span>
                 <span className="truncate text-xs">
                   {user_info?.email ?? user.email}
