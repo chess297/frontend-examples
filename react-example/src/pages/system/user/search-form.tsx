@@ -1,60 +1,44 @@
+import { z } from "zod";
 import {
-  SearchForm as GenericSearchForm,
-  FieldDefinition,
-  DateRangeConfig,
-} from "@/components/search-form";
+  ConfigSearchForm,
+  type FieldDefinition,
+} from "@/components/system-config/search-config/config-search-form";
+import type { UserSearchParams } from "./api";
 
-// 用户查询参数定义
-export interface UserSearchParams {
-  username?: string;
-  email?: string;
-  nickname?: string;
-  status?: string;
-  createTimeStart?: Date;
-  createTimeEnd?: Date;
+// 搜索表单验证模式
+const searchSchema = z.object({
+  username: z.string().optional(),
+  email: z.string().optional(),
+  status: z.string().optional(),
+});
+
+// 搜索表单属性类型
+interface UserSearchFormProps {
+  onSearch: (params: UserSearchParams) => void;
 }
 
-type SearchFormProps = {
-  onSearch: (params: UserSearchParams) => void;
-};
-
-export function SearchForm({ onSearch }: SearchFormProps) {
-  // 定义状态选项
+// 用户搜索表单组件
+export function UserSearchForm({ onSearch }: UserSearchFormProps) {
+  // 状态选项
   const statusOptions = [
-    { label: "全部", value: "all" }, // 修改空字符串为"all"
-    { label: "启用", value: "active" },
-    { label: "禁用", value: "inactive" },
+    { label: "选择状态", value: "" },
+    { label: "启用", value: "1" },
+    { label: "禁用", value: "0" },
   ];
 
-  // 定义日期范围配置
-  const createTimeRangeConfig: DateRangeConfig = {
-    startName: "createTimeStart",
-    endName: "createTimeEnd",
-  };
-
   // 定义搜索字段
-  const fields: FieldDefinition[] = [
+  const searchFields: FieldDefinition[] = [
     {
       name: "username",
       label: "用户名",
       type: "text",
-      placeholder: "搜索用户名",
-      layout: { order: 1 },
+      placeholder: "请输入用户名",
     },
     {
       name: "email",
-      label: "邮箱",
+      label: "电子邮箱",
       type: "text",
-      placeholder: "搜索邮箱",
-      layout: { order: 2 },
-    },
-    {
-      name: "nickname",
-      label: "昵称",
-      type: "text",
-      placeholder: "搜索昵称",
-      layout: { order: 4 },
-      isAdvanced: true,
+      placeholder: "请输入邮箱地址",
     },
     {
       name: "status",
@@ -62,25 +46,16 @@ export function SearchForm({ onSearch }: SearchFormProps) {
       type: "select",
       options: statusOptions,
       placeholder: "请选择状态",
-      layout: { order: 3 },
-    },
-    {
-      name: "createTimeRange",
-      label: "创建时间",
-      type: "dateRange",
-      dateRangeConfig: createTimeRangeConfig,
       isAdvanced: true,
-      layout: { order: 5, colSpan: 2 },
     },
   ];
 
   return (
-    <GenericSearchForm<UserSearchParams>
-      fields={fields}
+    <ConfigSearchForm<UserSearchParams>
+      fields={searchFields}
+      validationSchema={searchSchema}
+      defaultValues={{}}
       onSearch={onSearch}
-      storageKey="user-manager" // 记住搜索条件
-      layout="flexible" // 使用灵活布局
-      rowSize={3} // 每行最多3个字段
     />
   );
 }

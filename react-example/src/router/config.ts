@@ -15,7 +15,7 @@ export const ROUTES = {
   AUTH: "/auth",
   SIGNUP: "/auth/signup",
   SIGNIN: "/auth/signin",
-  SYSTEM_INIT: "/system-init",
+  SYSTEM_INIT: "/auth/system-init",
   TASK: "/task",
   PROFILE: "/profile",
   ALL: "*",
@@ -66,10 +66,10 @@ export const publicRoutes: PermissionRoute[] = [
         path: ROUTES.SIGNUP,
         Component: Signup,
       },
+      {
+        path: ROUTES.SYSTEM_INIT,
+        Component: SystemInit,
+      },
     ],
-  },
-  {
-    path: ROUTES.SYSTEM_INIT,
-    Component: SystemInit,
   },
 ];

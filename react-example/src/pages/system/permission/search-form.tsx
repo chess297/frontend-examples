@@ -1,87 +1,64 @@
+import { z } from "zod";
 import {
-  SearchForm as GenericSearchForm,
-  FieldDefinition,
-  DateRangeConfig,
-} from "@/components/search-form";
+  ConfigSearchForm,
+  type FieldDefinition,
+} from "@/components/system-config/search-config/config-search-form";
+import type { PermissionSearchParams } from "./api";
+import { PermissionAction } from "@/services/api/api";
 
-// 权限查询参数的定义
-export interface PermissionSearchParams {
-  name?: string;
-  resource?: string;
-  description?: string;
-  type?: string;
-  createTimeStart?: Date;
-  createTimeEnd?: Date;
+// 搜索表单验证模式
+const searchSchema = z.object({
+  name: z.string().optional(),
+  resource: z.string().optional(),
+  action: z.string().optional(),
+});
+
+// 搜索表单属性类型
+interface PermissionSearchFormProps {
+  onSearch: (params: PermissionSearchParams) => void;
 }
 
-type SearchFormProps = {
-  onSearch: (params: PermissionSearchParams) => void;
-};
-
-export function SearchForm({ onSearch }: SearchFormProps) {
-  // 定义权限类型选项
-  const typeOptions = [
-    { label: "全部", value: "all" }, // 修改空字符串为"all"
-    { label: "菜单", value: "menu" },
-    { label: "操作", value: "action" },
-    { label: "数据", value: "data" },
+// 权限搜索表单组件
+export function PermissionSearchForm({ onSearch }: PermissionSearchFormProps) {
+  // 转换 PermissionAction 枚举为选项
+  const actionOptions = [
+    { label: "选择操作类型", value: "" },
+    ...Object.keys(PermissionAction).map((key) => ({
+      label: key,
+      value: PermissionAction[key as keyof typeof PermissionAction],
+    })),
   ];
 
-  // 定义日期范围配置
-  const createTimeRangeConfig: DateRangeConfig = {
-    startName: "createTimeStart",
-    endName: "createTimeEnd",
-  };
-
   // 定义搜索字段
-  const fields: FieldDefinition[] = [
+  const searchFields: FieldDefinition[] = [
     {
       name: "name",
       label: "权限名称",
       type: "text",
-      placeholder: "搜索权限名称",
-      layout: { order: 1 },
+      placeholder: "请输入权限名称",
     },
     {
       name: "resource",
-      label: "资源名称",
+      label: "资源标识",
       type: "text",
-      placeholder: "搜索资源名称",
-      layout: { order: 2 },
+      placeholder: "请输入资源标识",
     },
     {
-      name: "type",
-      label: "权限类型",
+      name: "action",
+      label: "操作类型",
       type: "select",
-      options: typeOptions,
-      placeholder: "请选择权限类型",
-      layout: { order: 3 },
-    },
-    {
-      name: "description",
-      label: "权限描述",
-      type: "text",
-      placeholder: "搜索权限描述",
+      options: actionOptions,
+      placeholder: "请选择操作类型",
       isAdvanced: true,
-      layout: { order: 4 },
-    },
-    {
-      name: "createTimeRange",
-      label: "创建时间",
-      type: "dateRange",
-      dateRangeConfig: createTimeRangeConfig,
-      isAdvanced: true,
-      layout: { order: 5, colSpan: 2 },
     },
   ];
 
   return (
-    <GenericSearchForm<PermissionSearchParams>
-      fields={fields}
+    <ConfigSearchForm<PermissionSearchParams>
+      fields={searchFields}
+      validationSchema={searchSchema}
+      defaultValues={{}}
       onSearch={onSearch}
-      storageKey="permission-manager" // 记住搜索条件
-      layout="flexible" // 使用灵活布局
-      rowSize={3} // 每行最多3个字段
     />
   );
 }

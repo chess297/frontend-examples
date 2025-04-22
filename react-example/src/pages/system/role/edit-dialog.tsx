@@ -1,153 +1,170 @@
-import { useEffect } from "react";
+import { useState } from "react";
+import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Edit } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import type { RoleEntity, UpdateRoleDto } from "@/services/api/api";
-import { api } from "@/services";
+  ConfigForm,
+  type FormFieldConfig,
+} from "@/components/system-config/form-config/config-form";
+
+import * as api from "./api";
+import type { RoleResponse, UpdateRoleRequest } from "@/services/api/api";
 
 // 表单验证模式
 const formSchema = z.object({
   name: z.string().min(1, "角色名称不能为空"),
-  description: z.string().min(1, "角色描述不能为空"),
-  // 可以添加更多字段，如 permissions 等
+  description: z.string().optional(),
+  is_active: z.boolean().optional(),
 });
 
-interface EditDialogProps {
-  role: RoleEntity | null;
-  open: boolean;
-  onClose: () => void;
+interface EditRoleDialogProps {
+  role: RoleResponse;
+  open?: boolean;
+  onClose?: () => void;
+  children?: React.ReactNode;
 }
 
-export default function EditDialog({ role, open, onClose }: EditDialogProps) {
+export default function EditRoleDialog({
+  role,
+  open: controlledOpen,
+  onClose: controlledOnClose,
+  children,
+}: EditRoleDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // 初始化表单
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
+  // 支持受控和非受控模式
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const onClose = controlledOnClose || (() => setInternalOpen(false));
 
-  // 当角色数据变化时，重置表单
-  useEffect(() => {
-    if (role && open) {
-      form.reset({
-        name: role.name,
-        description: role.description,
-        // 可以添加其他字段的初始化
-      });
-    }
-  }, [role, open, form]);
-
-  // 提交表单
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!role) return;
-
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const roleData: UpdateRoleDto = {
+      // 创建更新角色数据
+      const updateData: UpdateRoleRequest = {
         name: values.name,
         description: values.description,
-        // 可以添加其他字段
+        is_active: values.is_active,
       };
 
-      await api.updateRole(role.id, roleData);
-      toast.success("角色更新成功");
+      // 调用更新角色服务
+      await api.update(role.id, updateData);
+      toast.success("角色更新成功！");
 
-      // 关闭对话框
-      onClose();
-
-      // 刷新角色列表
+      // 重新获取角色列表
       queryClient.invalidateQueries({ queryKey: ["roles"] });
     } catch (error) {
-      console.error("更新角色失败:", error);
-      toast.error("更新角色失败");
+      const errorMessage =
+        error instanceof Error ? error.message : "更新角色失败，请重试";
+      toast.error(errorMessage);
+      throw error;
     }
   };
 
+  // 表单字段定义
+  const formFields: FormFieldConfig[] = [
+    {
+      name: "name",
+      label: "角色名称",
+      type: "text",
+      placeholder: "请输入角色名称",
+      required: true,
+    },
+    {
+      name: "description",
+      label: "角色描述",
+      type: "textarea",
+      placeholder: "请输入角色描述",
+      description: "角色的职责和权限范围描述",
+    },
+    {
+      name: "status",
+      label: "启用状态",
+      type: "checkbox",
+      description: "设置角色是否启用",
+    },
+  ];
+
+  // 默认表单值
+  const defaultValues = {
+    name: role.name,
+    description: role.description || "",
+    status: Boolean(role.id),
+  };
+
+  // 如果没有数据则不渲染
+  if (!role) return null;
+
+  // 如果是受控模式且没有trigger，直接返回内容
+  if (controlledOpen !== undefined && !children) {
+    return (
+      <AlertDialog open={isOpen} onOpenChange={onClose}>
+        <AlertDialogContent className="sm:max-w-[500px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>编辑角色</AlertDialogTitle>
+            <AlertDialogDescription>修改角色信息</AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <ConfigForm
+            config={{
+              title: "编辑角色",
+              fields: formFields,
+              validationSchema: formSchema,
+              defaultValues,
+              onSubmit: handleSubmit,
+              queryKey: ["roles"],
+            }}
+            onClose={onClose}
+          />
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-[425px]">
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={controlledOpen !== undefined ? onClose : setInternalOpen}
+    >
+      <AlertDialogTrigger asChild>
+        {children || (
+          <Button variant="ghost" size="icon" title="编辑">
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
+      </AlertDialogTrigger>
+
+      <AlertDialogContent className="sm:max-w-[500px]">
         <AlertDialogHeader>
           <AlertDialogTitle>编辑角色</AlertDialogTitle>
-          <AlertDialogDescription>
-            编辑角色信息，修改下面的表单并保存。
-          </AlertDialogDescription>
+          <AlertDialogDescription>修改角色信息</AlertDialogDescription>
         </AlertDialogHeader>
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 py-4"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>角色名称</FormLabel>
-                  <FormControl>
-                    <Input placeholder="输入角色名称" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    角色名称应该简洁明了，例如：管理员、编辑者等
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>角色描述</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="输入角色描述"
-                      className="resize-none h-20"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* 可以在此处添加权限选择器 */}
-
-            <AlertDialogFooter>
-              <Button variant="outline" type="button" onClick={onClose}>
-                取消
-              </Button>
-              <Button type="submit">保存</Button>
-            </AlertDialogFooter>
-          </form>
-        </Form>
+        <ConfigForm
+          config={{
+            title: "编辑角色",
+            fields: formFields,
+            validationSchema: formSchema,
+            defaultValues,
+            onSubmit: handleSubmit,
+            queryKey: ["roles"],
+          }}
+          onClose={
+            controlledOpen !== undefined
+              ? onClose
+              : () => setInternalOpen(false)
+          }
+        />
       </AlertDialogContent>
     </AlertDialog>
   );

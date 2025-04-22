@@ -1,90 +1,83 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-
-import { api } from "@/services";
-import Loading from "@/components/loading";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-
-import { DataTable } from "@/components/data-table"; // Updated import path
-
-import { createColumns } from "./columns";
-
-import AddDialog from "./add-dialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Row, Column } from "@tanstack/react-table";
-import { SearchForm, type MenuSearchParams } from "./search-form";
+
+import { ConfigTable } from "@/components/system-config/table-config/config-table";
+import { createColumns } from "./columns";
+import AddMenuDialog from "./add-dialog";
+import { MenuSearchForm } from "./search-form";
+import * as api from "./api";
+import type { MenuSearchParams } from "./api";
+import Loading from "@/components/loading";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import type { MenuResponse } from "@/services/api/api";
 
 export default function MenuManager() {
   const queryClient = useQueryClient();
-  const [filteredData, setFilteredData] = useState<MenuResponse[]>([]);
+
+  // 搜索相关状态
   const [searchParams, setSearchParams] = useState<MenuSearchParams>({});
   const [isFiltering, setIsFiltering] = useState(false);
+  const [filteredData, setFilteredData] = useState<MenuResponse[]>([]);
+
+  // 分页相关状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+
+  // 删除确认对话框相关状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [menuIdToDelete, setMenuIdToDelete] = useState<string | null>(null);
 
   // 使用react-query获取菜单数据
   const { data, isLoading } = useQuery({
-    queryKey: ["menus"],
+    queryKey: ["menus", currentPage, pageSize],
     queryFn: async () => {
-      const response = await api.findManyMenu();
-      return response.data.data;
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+      };
+      return await api.getList(params);
     },
   });
 
-  // 处理单元格编辑保存
-  const handleSaveCell = async (
-    row: Row<MenuResponse>,
-    column: Column<MenuResponse, unknown>,
-    value: string
-  ) => {
+  // 处理菜单编辑
+  const handleEdit = (menu: MenuResponse) => {
+    // 编辑操作由 EditMenuDialog 组件处理
+    // 此处无需额外逻辑
+  };
+
+  // 处理菜单删除
+  const handleDelete = (id: string) => {
+    setMenuIdToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  // 确认删除菜单
+  const confirmDelete = async () => {
+    if (!menuIdToDelete) return;
+
     try {
-      const menu = row.original;
-      const columnId = column.id;
+      await api.remove(menuIdToDelete);
+      toast.success("菜单删除成功");
 
-      // 根据列ID更新相应的菜单属性
-      const updatedMenu = {
-        ...menu,
-      };
+      // 重新获取菜单列表
+      queryClient.invalidateQueries({ queryKey: ["menus"] });
 
-      // 根据列ID更新相应的属性
-      switch (columnId) {
-        case "title":
-          updatedMenu.title = value;
-          break;
-        case "path":
-          updatedMenu.path = value;
-          break;
-        case "icon":
-          updatedMenu.icon = value;
-          break;
-        case "component":
-          updatedMenu.component = value;
-          break;
-        default:
-          break;
-      }
-
-      // 调用API更新菜单
-      const response = await api.updateMenu(menu.id, updatedMenu);
-
-      if (response.status === 200) {
-        toast.success(
-          `成功更新菜单${columnId === "title" ? `: ${value}` : ""}`
-        );
-        // 刷新菜单列表数据
-        queryClient.invalidateQueries({ queryKey: ["menus"] });
-      }
-    } catch (error: unknown) {
+      // 重置状态
+      setMenuIdToDelete(null);
+      setDeleteDialogOpen(false);
+    } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "更新菜单失败";
+        error instanceof Error ? error.message : "删除菜单失败，请重试";
       toast.error(errorMessage);
     }
   };
@@ -93,93 +86,89 @@ export default function MenuManager() {
   const handleSearch = (params: MenuSearchParams) => {
     setSearchParams(params);
 
-    // 如果所有字段为空，显示全部数据
-    if (Object.keys(params).length === 0) {
-      setIsFiltering(false);
+    // 检查是否有搜索条件
+    const hasFilters = Object.values(params).some((value) => !!value);
+    setIsFiltering(hasFilters);
+
+    if (!hasFilters) {
+      setFilteredData([]);
       return;
     }
 
-    setIsFiltering(true);
+    // 客户端筛选数据 (如果需要可改为服务端筛选)
+    if (data?.records) {
+      const filtered = api.filterData(data.records, params);
+      setFilteredData(filtered);
+    }
+  };
 
-    // 客户端筛选数据
-    const allRecords = data?.records || [];
-    const filtered = allRecords.filter((menu) => {
-      // 检查每个筛选条件
-      return Object.entries(params).every(([key, value]) => {
-        if (!value) return true; // 忽略空值
-
-        // 根据不同字段进行模糊匹配
-        switch (key) {
-          case "title":
-            return menu.title.toLowerCase().includes(value.toLowerCase());
-          case "path":
-            return menu.path.toLowerCase().includes(value.toLowerCase());
-          case "icon":
-            return menu.icon.toLowerCase().includes(value.toLowerCase());
-          case "component":
-            return menu.component.toLowerCase().includes(value.toLowerCase());
-          default:
-            return true;
-        }
-      });
-    });
-
-    setFilteredData(filtered);
+  // 处理页码变化
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   // 创建表格列定义
-  const columns = createColumns(handleSaveCell);
+  const columns = createColumns(handleEdit, handleDelete);
 
-  if (isLoading) return <Loading />;
+  // 加载状态
+  if (isLoading && !data) return <Loading />;
 
-  // 确定要显示的数据
+  // 确定表格数据和分页信息
   const recordsToDisplay = isFiltering ? filteredData : data?.records || [];
+  const totalRecords = isFiltering ? filteredData.length : data?.total || 0;
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">菜单管理</h2>
-        <AddDialog />
+        <AddMenuDialog />
       </div>
 
-      {/* 查询表单 */}
-      <SearchForm onSearch={handleSearch} />
+      {/* 搜索表单 */}
+      <MenuSearchForm onSearch={handleSearch} />
 
-      <div className="text-sm text-muted-foreground mb-4 flex justify-between items-center">
-        <div>
-          {isFiltering
-            ? `查询结果: 共找到 ${recordsToDisplay.length} 条记录`
-            : `共有 ${data?.records?.length || 0} 条菜单记录`}
-          {!isFiltering && (
-            <span className="ml-4">提示: 双击单元格可以直接编辑菜单项</span>
-          )}
-        </div>
-        {/* 可以在这里添加其他操作按钮，如批量导入导出等 */}
+      {/* 表格信息提示 */}
+      <div className="text-sm text-muted-foreground">
+        {isFiltering
+          ? `搜索结果: 共找到 ${filteredData.length} 条记录`
+          : `共有 ${data?.total || 0} 条菜单记录`}
       </div>
 
       {/* 数据表格 */}
-      <DataTable<MenuResponse, unknown>
+      <ConfigTable
         columns={columns}
         data={recordsToDisplay}
         isLoading={isLoading}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalItems={totalRecords}
+        totalPages={totalPages}
+        searchKey="title"
+        searchPlaceholder="搜索菜单名称..."
+        onPageChange={handlePageChange}
       />
 
-      <Pagination className="justify-end mt-5">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious href="#" />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationLink href="#">1</PaginationLink>
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-          <PaginationItem>
-            <PaginationNext href="#" />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      {/* 删除确认对话框 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除此菜单吗？此操作不可撤销，可能会影响系统功能。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

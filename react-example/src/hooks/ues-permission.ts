@@ -9,6 +9,8 @@ export function usePermission() {
 
   useEffect(() => {
     mergeHomeRoutes(menus);
+    console.log("🚀 ~ useEffect ~ publicRoutes:", publicRoutes);
+
     setRouter(createBrowserRouter(publicRoutes));
   }, [menus]);
 

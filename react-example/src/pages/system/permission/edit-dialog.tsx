@@ -26,7 +26,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { PermissionAction } from "@/services/api/api";
 import type { PermissionEntity, UpdatePermissionDto } from "@/services/api/api";
-import { api } from "@/services";
+import * as api from "./api";
 
 // 表单验证模式
 const formSchema = z.object({
@@ -88,7 +88,7 @@ export default function EditDialog({
         roles: values.roles || [],
       };
 
-      await api.updatePermission(permission.id, permissionData);
+      await api.update(permission.id, permissionData);
       toast.success("权限更新成功");
 
       // 关闭对话框

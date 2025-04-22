@@ -57,7 +57,7 @@ export function SystemInitForm({ className }: React.ComponentProps<"form">) {
 
   async function generateSystemCode() {
     await api.generateSystemCode().then((res) => {
-      toast.success("系统码生成成功");
+      toast.success(res.data.message);
     });
   }
 
@@ -69,7 +69,7 @@ export function SystemInitForm({ className }: React.ComponentProps<"form">) {
         navigate(ROUTES.SIGNIN);
       }
     });
-  }, []);
+  }, [navigate]);
 
   return (
     <Form {...form}>

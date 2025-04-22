@@ -27,8 +27,10 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import type { CreatePermissionDto } from "@/services/api/api";
 import { PermissionAction } from "@/services/api/api";
-import { api } from "@/services";
 import { Plus } from "lucide-react";
+
+// 将引用从 services/modules/permission 改为本地 api.ts
+import * as api from "./api";
 
 // 表单验证模式
 const formSchema = z.object({
@@ -63,7 +65,7 @@ export default function AddDialog() {
         actions: values.actions as PermissionAction[],
       };
 
-      await api.createPermission(permissionData);
+      await api.create(permissionData);
       toast.success("权限创建成功");
 
       // 重置表单和关闭对话框

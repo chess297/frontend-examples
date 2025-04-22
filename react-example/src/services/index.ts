@@ -8,13 +8,13 @@ http.instance.interceptors.response.use(
   },
   (error) => {
     if (error.response.status === 401) {
-      toSignin();
+      // toSignin();
     } else if (error.response.status === 400) {
       toast.error(error.response.data.message);
     } else if (error.response.status === 503) {
       toast.error("系统还没初始化，请先注册管理员账号");
       // 重定向到初始化页面
-      window.location.href = ROUTES.SYSTEM_INIT;
+      // window.location.href = ROUTES.SYSTEM_INIT;
     }
     throw error;
   }

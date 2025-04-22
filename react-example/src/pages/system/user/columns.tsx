@@ -1,15 +1,16 @@
-import { ColumnDef } from "@tanstack/react-table";
-import type { UserEntity } from "@/services/api/api";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown, Edit, Trash, Eye, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash } from "lucide-react";
+import type { UserResponse } from "@/services/api/api";
 
-export const createColumns = (
-  onEdit: (user: UserEntity) => void,
-  onDelete: (id: string) => void
-): ColumnDef<UserEntity>[] => {
-  // Define columns based on UserEntity properties
+export function createColumns(
+  onEdit: (user: UserResponse) => void,
+  onDelete: (id: string) => void,
+  onResetPassword: (id: string) => void,
+  onView?: (id: string) => void
+): ColumnDef<UserResponse>[] {
   return [
     {
       id: "select",
@@ -20,7 +21,7 @@ export const createColumns = (
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="全选"
+          aria-label="选择所有"
         />
       ),
       cell: ({ row }) => (
@@ -34,78 +35,47 @@ export const createColumns = (
       enableHiding: false,
     },
     {
-      accessorKey: "name",
-      header: "用户名",
-      cell: ({ row }) => {
-        const name = row.original.username;
-        return <span className="font-medium">{name}</span>;
+      accessorKey: "username",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            用户名
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
       },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.original.username}</div>
+      ),
     },
     {
       accessorKey: "email",
-      header: "邮箱",
-      cell: ({ row }) => {
-        const email = row.original.email;
-        return <span className="text-muted-foreground">{email || "-"}</span>;
-      },
-    },
-
-    {
-      accessorKey: "roles",
-      header: "角色",
-      cell: ({ row }) => {
-        const roles = row.original.roles || [];
-        return roles.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {roles.length > 3 ? (
-              <>
-                {roles.slice(0, 3).map((role, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {typeof role === "string" ? role : role.name}
-                  </Badge>
-                ))}
-                <Badge variant="secondary" className="text-xs">
-                  +{roles.length - 3}
-                </Badge>
-              </>
-            ) : (
-              roles.map((role, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {typeof role === "string" ? role : role.name}
-                </Badge>
-              ))
-            )}
-          </div>
-        ) : (
-          <span className="text-muted-foreground text-sm">无角色</span>
-        );
-      },
+      header: "电子邮箱",
+      cell: ({ row }) => <div>{row.original.email}</div>,
     },
     {
       accessorKey: "status",
       header: "状态",
       cell: ({ row }) => {
         const status = row.original.is_active;
-        return (
-          <Badge variant={status ? "default" : "destructive"}>
-            {status ? "启用" : "禁用"}
-          </Badge>
+        return status ? (
+          <Badge variant="default">启用</Badge>
+        ) : (
+          <Badge variant="secondary">禁用</Badge>
         );
       },
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "create_at",
       header: "创建时间",
       cell: ({ row }) => {
-        const date = row.original.create_at;
-        if (!date) return "-";
-        return new Date(date).toLocaleString("zh-CN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const date = row.original.create_at
+          ? new Date(row.original.create_at)
+          : null;
+        return date ? <div>{date.toLocaleString()}</div> : <div>-</div>;
       },
     },
     {
@@ -113,8 +83,19 @@ export const createColumns = (
       header: "操作",
       cell: ({ row }) => {
         const user = row.original;
+
         return (
           <div className="flex items-center gap-2">
+            {onView && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onView(user.id)}
+                title="查看"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -122,6 +103,14 @@ export const createColumns = (
               title="编辑"
             >
               <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onResetPassword(user.id)}
+              title="重置密码"
+            >
+              <Key className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -136,4 +125,4 @@ export const createColumns = (
       },
     },
   ];
-};
+}

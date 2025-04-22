@@ -1,6 +1,6 @@
 import { type FunctionComponent, lazy } from "react";
 import { HomeRoute, WelcomeRoute } from "./config";
-import type { MenuEntity } from "@/services/api/api";
+import type { MenuResponse } from "@/services/api/api";
 import type { PermissionRoute } from "./type";
 
 const componentContext = import.meta.webpackContext("@/pages", {
@@ -24,16 +24,16 @@ export function importAllRoutes(r: Rspack.Context) {
   return components;
 }
 
-export function mergeHomeRoutes(menus: MenuEntity[]) {
+export function mergeHomeRoutes(menus: MenuResponse[]) {
   HomeRoute.children = [
     WelcomeRoute,
     ...menus
-      .filter((item) => item.mate.path)
+      .filter((item) => item.path)
       .map((item) => {
         return {
-          path: item.mate.path,
-          name: item.mate.title,
-          Component: components[item.mate.component],
+          path: item.path,
+          name: item.title,
+          Component: components[`./${item.component}.tsx`],
         } as PermissionRoute;
       }),
   ];

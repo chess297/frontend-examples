@@ -3,7 +3,7 @@ import { generateApi } from "swagger-typescript-api";
 const ROOT_PATH = process.cwd();
 function main() {
   generateApi({
-    url: "http://localhost:3000/swagger-json",
+    url: "http://localhost:3001/swagger-json",
     // input:"http://localhost:3000/swagger-json",
     output: path.join(ROOT_PATH, "src/services/api"),
     fileName: "api.ts",

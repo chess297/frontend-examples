@@ -1,197 +1,144 @@
-import {
-  AlertDialogHeader,
-  AlertDialogFooter,
-} from "@/components/ui/alert-dialog";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Form,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import * as z from "zod";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Edit } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogCancel,
-  AlertDialogAction,
   AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
-import { api } from "@/services";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, PenIcon } from "lucide-react";
-import type { MenuResponse } from "@/services/api/api";
+import {
+  ConfigForm,
+  type FormFieldConfig,
+} from "@/components/system-config/form-config/config-form";
 
+import * as api from "./api";
+import type { MenuResponse, UpdateMenuDto } from "@/services/api/api";
+
+// 表单验证模式
 const formSchema = z.object({
   title: z.string().min(1, "菜单名称不能为空"),
   path: z.string().min(1, "菜单路径不能为空"),
   icon: z.string().min(1, "菜单图标不能为空"),
-  component: z.string().min(1, "组件路径不能为空"),
+  component: z.string().optional(),
+  parent_id: z.string().optional(),
 });
 
-interface EditDialogProps {
+interface EditMenuDialogProps {
   menu: MenuResponse;
+  onClose?: () => void;
+  children?: React.ReactNode;
 }
 
-export default function EditDialog({ menu }: EditDialogProps) {
+export default function EditMenuDialog({
+  menu,
+  children,
+}: EditMenuDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: menu.title,
-      path: menu.path,
-      icon: menu.icon,
-      component: menu.component,
-    },
-  });
-
-  // 当菜单数据变化时重置表单
-  useEffect(() => {
-    if (menu) {
-      form.reset({
-        title: menu.title,
-        path: menu.path,
-        icon: menu.icon,
-        component: menu.component,
-      });
-    }
-  }, [form, menu]);
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsSubmitting(true);
-
-      // 创建更新的菜单数据
-      const updatedMenu = {
-        ...menu,
-        mate: {
-          ...menu,
-          title: values.title,
-          path: values.path,
-          icon: values.icon,
-          component: values.component,
-        },
+      // 创建更新菜单数据
+      const updateData: UpdateMenuDto = {
+        title: values.title,
+        path: values.path,
+        icon: values.icon,
+        component: values.component,
+        parent_id: values.parent_id,
       };
 
-      const response = await api.updateMenu(menu.id, updatedMenu);
+      // 调用更新菜单服务
+      await api.updateMenu(menu.id, updateData);
+      toast.success("菜单更新成功！");
 
-      if (response.status === 200) {
-        toast.success("菜单更新成功！");
-        // 关闭弹窗
-        setIsOpen(false);
-        // 刷新菜单列表
-        queryClient.invalidateQueries({ queryKey: ["menus"] });
-      }
+      // 重新获取菜单列表
+      queryClient.invalidateQueries({ queryKey: ["menus"] });
+
+      return true;
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message || "更新菜单失败，请重试");
-      } else {
-        toast.error("更新菜单失败，请重试");
-      }
-    } finally {
-      setIsSubmitting(false);
+      const errorMessage =
+        error instanceof Error ? error.message : "更新菜单失败，请重试";
+      toast.error(errorMessage);
+      throw error;
     }
+  };
+
+  // 表单字段定义
+  const formFields: FormFieldConfig[] = [
+    {
+      name: "title",
+      label: "菜单名称",
+      type: "text",
+      placeholder: "请输入菜单名称",
+      required: true,
+    },
+    {
+      name: "path",
+      label: "菜单路径",
+      type: "text",
+      placeholder: "请输入菜单路径，例如：/admin/users",
+      required: true,
+    },
+    {
+      name: "icon",
+      label: "菜单图标",
+      type: "text",
+      placeholder: "请输入图标名称",
+      required: true,
+      description: "菜单图标名称，例如：user, settings, home 等",
+    },
+    {
+      name: "component",
+      label: "组件路径",
+      type: "text",
+      placeholder: "请输入组件路径",
+      description: "组件的实际路径，例如：/pages/admin/users/index.tsx",
+    },
+  ];
+
+  // 默认表单值
+  const defaultValues = {
+    title: menu.title,
+    path: menu.path,
+    icon: menu.icon,
+    component: menu.component,
+    parent_id: menu.parent_id ? String(menu.parent_id) : "",
   };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <PenIcon className="h-4 w-4" />
-        </Button>
+        {children || (
+          <Button variant="ghost" size="icon" title="编辑">
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
       </AlertDialogTrigger>
-      <AlertDialogContent>
+
+      <AlertDialogContent className="sm:max-w-[500px]">
         <AlertDialogHeader>
           <AlertDialogTitle>编辑菜单</AlertDialogTitle>
           <AlertDialogDescription>修改菜单信息</AlertDialogDescription>
         </AlertDialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>菜单名称</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-              name="title"
-            />
-            <FormField
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>菜单路径</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-              name="path"
-            />
-            <FormField
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>菜单图标</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-              name="icon"
-            />
-            <FormField
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>组件路径</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-              name="component"
-            />
-            <AlertDialogFooter className="mt-6">
-              <AlertDialogCancel disabled={isSubmitting}>
-                取消
-              </AlertDialogCancel>
-              <AlertDialogAction
-                type="submit"
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    提交中...
-                  </>
-                ) : (
-                  "保存"
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </form>
-        </Form>
+
+        <ConfigForm
+          config={{
+            title: "编辑菜单",
+            fields: formFields,
+            validationSchema: formSchema,
+            defaultValues,
+            onSubmit: handleSubmit,
+            queryKey: ["menus"],
+          }}
+          onClose={() => setIsOpen(false)}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );

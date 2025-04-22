@@ -24,7 +24,7 @@ export default defineConfig({
   },
   server: {
     host: "spiritchess.cn",
-    port: 3001,
+    port: 3000,
     open: true,
     https: {
       key: fs.readFileSync("certificates/spiritchess.cn.key"),
@@ -32,7 +32,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://spiritchess.cn:3000",
+        target: "http://spiritchess.cn:3001",
         changeOrigin: true,
         cookieDomainRewrite: {
           "*": "localhost",

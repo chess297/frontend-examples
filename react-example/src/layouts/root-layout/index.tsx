@@ -11,19 +11,22 @@ import { useAuthStore } from "@/hooks";
 import Loading from "@/components/loading";
 import { api } from "@/services";
 import { useSidebarStore } from "@/hooks/use-sidebar-store";
+import type { MenuResponse } from "@/services/api/api";
 
 export function LazyComponent({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<Loading />}>{children}</Suspense>;
 }
 
-async function getInitState() {
-  console.log("getInitState");
-
-  const res = await api.findManyMenu();
+async function getInitState(is_login: boolean) {
+  const menus: MenuResponse[] = is_login
+    ? await api.findManyMenu().then((res) => {
+        return res.data.data.records ?? [];
+      })
+    : [];
 
   // await new Promise((resolve) => setTimeout(resolve, 3000));
   return {
-    menus: res.data.data.records,
+    menus,
   };
 }
 
@@ -31,22 +34,35 @@ export function Root() {
   const [router, setRouter] = useState(createBrowserRouter(publicRoutes));
   const initCalledRef = useRef(false);
   const [isLoading, { setRight }] = useToggle(true);
-  const { menus, setMenus, getUserInfo, getUserPermission } = useAuthStore();
+  const { is_login, menus, setMenus, getUserInfo, getUserPermission } =
+    useAuthStore();
   const { fetchAdminMenuGround } = useSidebarStore();
 
   useEffect(() => {
-    // Skip if already initialized to prevent duplicate calls in StrictMode
     if (initCalledRef.current) return;
 
     initCalledRef.current = true;
-    getInitState().then(async (res) => {
-      setMenus(res.menus);
-      await getUserInfo();
-      fetchAdminMenuGround();
-      // await getUserPermission();
-      setRight();
-    });
-  }, [setMenus, setRight, getUserInfo, fetchAdminMenuGround]);
+    getInitState(is_login)
+      .then(async (res) => {
+        setMenus(res.menus);
+
+        if (is_login) {
+          getUserInfo();
+          fetchAdminMenuGround();
+          getUserPermission();
+        }
+      })
+      .finally(() => {
+        setRight();
+      });
+  }, [
+    is_login,
+    setMenus,
+    setRight,
+    getUserInfo,
+    fetchAdminMenuGround,
+    getUserPermission,
+  ]);
 
   useEffect(() => {
     const menuRoutes: RouteObject[] = [

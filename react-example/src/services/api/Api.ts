@@ -25,8 +25,17 @@ export interface SuccessResponse {
   data: object;
 }
 
+export interface CheckSystemInitResponse {
+  /** 系统初始化状态 */
+  initialized: boolean;
+}
+
 export interface SystemCodeEntity {
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /**
    * 是否已使用
    * @example false
@@ -81,6 +90,10 @@ export interface AdminRegisterRequest {
 export interface DictionaryItemEntity {
   /** 字典项ID */
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /** 字典ID */
   dictionary_id: string;
   /** 字典项值 */
@@ -99,6 +112,10 @@ export interface DictionaryItemEntity {
 export interface DictionaryResponseDto {
   /** 字典ID */
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /** 字典代码 */
   code: string;
   /** 字典名称 */
@@ -123,6 +140,10 @@ export interface CreateDictionaryDto {
 export interface DictionaryListItemDto {
   /** 字典ID */
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /** 字典代码 */
   code: string;
   /** 字典名称 */
@@ -149,6 +170,10 @@ export interface DictionaryListResponseDto {
 export interface DictionaryByCodeResponseDto {
   /** 字典ID */
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /** 字典代码 */
   code: string;
   /** 字典名称 */
@@ -239,51 +264,38 @@ export interface BadResponse {
   message: string;
 }
 
-export interface RoleEntity {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-}
-
 export interface UserEntity {
   id: string;
-  username: string;
-  email: string;
-  password: string;
-  /** 用户角色 */
-  roles: RoleEntity[];
-  is_active: boolean;
   /** @format date-time */
   create_at: string;
   /** @format date-time */
   update_at: string;
+  username: string;
+  email: string;
+  is_active: boolean;
+  phone: string;
+  country_code: string;
+  address: string;
 }
 
 export interface CreateUserRequest {
-  /** @example "user" */
-  username: string;
-  /** @example "user@example.com" */
-  email: string;
-  /** @example "123456" */
   password: string;
+  username: string;
+  email: string;
+  is_active: boolean;
+  phone: string;
+  country_code: string;
+  address: string;
   /** 用户角色id列表 */
-  role: object;
+  roleIds: string[];
 }
 
 export interface PaginationData {
-  /**
-   * 当前页码
-   * @example 1
-   */
-  current: number;
   /**
    * 每页显示条数
    * @example 10
    */
   total: number;
-  /** 数据列表 */
-  records: any[][];
 }
 
 export interface PaginationResponse {
@@ -301,6 +313,32 @@ export interface PaginationResponse {
   data: PaginationData;
 }
 
+export interface UserResponse {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  username: string;
+  email: string;
+  is_active: boolean;
+  phone: string;
+  country_code: string;
+  address: string;
+}
+
+export interface UpdateUserRequest {
+  password?: string;
+  username?: string;
+  email?: string;
+  is_active?: boolean;
+  phone?: string;
+  country_code?: string;
+  address?: string;
+  /** 用户角色id列表 */
+  roleIds?: string[];
+}
+
 export interface RemoveUserRequest {
   /** 需要删除的用户id */
   id: string;
@@ -308,30 +346,60 @@ export interface RemoveUserRequest {
   ids: string[];
 }
 
+export interface CreateRoleResponse {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  is_active: boolean;
+  /** 角色名称 */
+  name: string;
+  description: string;
+}
+
 export interface CreateRoleRequest {
   /** 角色名称 */
   name: string;
-  /** 角色描述 */
   description: string;
+  /** 是否激活 */
+  is_active: boolean;
   /** 权限ID列表 */
-  permissions: string[];
+  permission_ids: string[];
   /** 用户ID列表 */
-  users: string[];
+  user_ids: string[];
 }
 
-export interface UpdateRoleDto {
+export interface RoleResponse {
+  id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
+  is_active: boolean;
+  /** 角色名称 */
+  name: string;
+  description: string;
+}
+
+export interface UpdateRoleRequest {
   /** 角色名称 */
   name?: string;
-  /** 角色描述 */
   description?: string;
+  /** 是否激活 */
+  is_active?: boolean;
   /** 权限ID列表 */
-  permissions?: string[];
+  permission_ids?: string[];
   /** 用户ID列表 */
-  users?: string[];
+  user_ids?: string[];
 }
 
 export interface PermissionEntity {
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   /** 权限名称 */
   name: string;
   /** 权限描述 */
@@ -436,6 +504,10 @@ export interface UpdateMenuDto {
 
 export interface MenuMateEntity {
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   menu_id: string;
   title: string;
   path: string;
@@ -445,6 +517,10 @@ export interface MenuMateEntity {
 
 export interface CreateMenuMateDto {
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   menu_id: string;
   title: string;
   path: string;
@@ -454,6 +530,10 @@ export interface CreateMenuMateDto {
 
 export interface UpdateMenuMateDto {
   id?: string;
+  /** @format date-time */
+  create_at?: string;
+  /** @format date-time */
+  update_at?: string;
   menu_id?: string;
   title?: string;
   path?: string;
@@ -463,6 +543,10 @@ export interface UpdateMenuMateDto {
 
 export interface MenuGroupEntity {
   id: string;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
   icon: string;
   description: string;
   title: string;
@@ -719,9 +803,15 @@ export class Api<SecurityDataType extends unknown> {
    * @request GET:/api/v1/system-init/check
    */
   checkSystemInit = (params: RequestParams = {}) =>
-    this.http.request<void, any>({
+    this.http.request<
+      SuccessResponse & {
+        data?: CheckSystemInitResponse;
+      },
+      any
+    >({
       path: `/api/v1/system-init/check`,
       method: "GET",
+      format: "json",
       ...params,
     });
 
@@ -1027,17 +1117,32 @@ export class Api<SecurityDataType extends unknown> {
    * @summary 查询多个用户
    * @request GET:/api/v1/user
    */
-  queryUsers = (params: RequestParams = {}) =>
+  queryUsers = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+    },
+    params: RequestParams = {},
+  ) =>
     this.http.request<
       PaginationResponse & {
         data?: PaginationData & {
-          records?: UserEntity[];
+          records?: UserResponse[];
         };
       },
       any
     >({
       path: `/api/v1/user`,
       method: "GET",
+      query: query,
       format: "json",
       ...params,
     });
@@ -1053,7 +1158,7 @@ export class Api<SecurityDataType extends unknown> {
   getUserInfo = (params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: UserEntity;
+        data?: UserResponse;
       },
       any
     >({
@@ -1067,19 +1172,48 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name QueryUser
+   * @name GetUser
    * @summary 查询单个用户
    * @request GET:/api/v1/user/{id}
    */
-  queryUser = (id: string, params: RequestParams = {}) =>
+  getUser = (id: string, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: UserEntity;
+        data?: UserResponse;
       },
       any
     >({
       path: `/api/v1/user/${id}`,
       method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags user
+   * @name GetUser2
+   * @summary 查询单个用户
+   * @request PATCH:/api/v1/user/{id}
+   * @originalName getUser
+   * @duplicate
+   */
+  getUser2 = (
+    id: string,
+    data: UpdateUserRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: UserResponse;
+      },
+      any
+    >({
+      path: `/api/v1/user/${id}`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });
@@ -1119,7 +1253,7 @@ export class Api<SecurityDataType extends unknown> {
   ) =>
     this.http.request<
       SuccessResponse & {
-        data?: RoleEntity;
+        data?: CreateRoleResponse;
       },
       BadResponse
     >({
@@ -1157,7 +1291,7 @@ export class Api<SecurityDataType extends unknown> {
     this.http.request<
       PaginationResponse & {
         data?: PaginationData & {
-          records?: RoleEntity[];
+          records?: RoleResponse[];
         };
       },
       BadResponse
@@ -1180,7 +1314,7 @@ export class Api<SecurityDataType extends unknown> {
   roleControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
     this.http.request<
       SuccessResponse & {
-        data?: RoleEntity;
+        data?: RoleResponse;
       },
       any
     >({
@@ -1200,12 +1334,12 @@ export class Api<SecurityDataType extends unknown> {
    */
   roleControllerUpdateV1 = (
     id: string,
-    data: UpdateRoleDto,
+    data: UpdateRoleRequest,
     params: RequestParams = {},
   ) =>
     this.http.request<
       SuccessResponse & {
-        data?: RoleEntity;
+        data?: RoleResponse;
       },
       any
     >({

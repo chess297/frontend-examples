@@ -1,72 +1,59 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-import type { RoleEntity } from "@/services/api/api"; // Assume RoleEntity exists
-import { api } from "@/services";
+import { ConfigTable } from "@/components/system-config/table-config/config-table";
+import { createColumns } from "./columns";
+import AddRoleDialog from "./add-dialog";
+import EditRoleDialog from "./edit-dialog";
+import { RoleSearchForm } from "./search-form";
+import * as api from "./api";
+import type { RoleSearchParams } from "./api";
 import Loading from "@/components/loading";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import {
   AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// 使用公共DataTable组件
-import { DataTable } from "@/components/data-table";
-import { createColumns } from "./columns";
-
-import AddDialog from "./add-dialog";
-import EditDialog from "./edit-dialog";
-import { toast } from "sonner";
-import { SearchForm } from "./search-form";
-import type { RoleSearchParams } from "./search-form";
+import type { RoleResponse } from "@/services/api/api";
 
 export default function RoleManager() {
   const queryClient = useQueryClient();
+
+  // 搜索相关状态
   const [searchParams, setSearchParams] = useState<RoleSearchParams>({});
   const [isFiltering, setIsFiltering] = useState(false);
+  const [filteredData, setFilteredData] = useState<RoleResponse[]>([]);
+
+  // 分页相关状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
-  // 编辑角色相关状态
+  // 编辑和删除相关状态
+  const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<RoleEntity | null>(null);
-
-  // 删除确认对话框相关状态
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [roleToDelete, setRoleToDelete] = useState<string | null>(null);
+  const [roleIdToDelete, setRoleIdToDelete] = useState<string | null>(null);
 
   // 使用react-query获取角色数据
   const { data, isLoading } = useQuery({
-    queryKey: ["roles", currentPage, pageSize, searchParams],
+    queryKey: ["roles", currentPage, pageSize],
     queryFn: async () => {
-      const queryParams = {
+      const params = {
         page: currentPage,
         limit: pageSize,
-        name: searchParams.name || "",
-        // 可以根据API添加更多查询参数
       };
-      // 调用角色列表API
-      const response = await api.roleControllerFindAllV1(queryParams);
-      return response.data.data;
+      return await api.getList(params);
     },
   });
 
-  // 处理编辑角色
-  const handleEdit = (role: RoleEntity) => {
+  // 处理角色编辑
+  const handleEdit = (role: RoleResponse) => {
     setSelectedRole(role);
     setEditDialogOpen(true);
   };
@@ -77,164 +64,108 @@ export default function RoleManager() {
     setSelectedRole(null);
   };
 
-  // 处理删除角色
+  // 处理角色删除
   const handleDelete = (id: string) => {
-    setRoleToDelete(id);
+    setRoleIdToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   // 确认删除角色
   const confirmDelete = async () => {
-    if (!roleToDelete) return;
+    if (!roleIdToDelete) return;
 
     try {
-      await api.removeRole(roleToDelete);
+      await api.remove(roleIdToDelete);
       toast.success("角色删除成功");
 
-      // 刷新角色列表
+      // 重新获取角色列表
       queryClient.invalidateQueries({ queryKey: ["roles"] });
 
       // 重置状态
-      setRoleToDelete(null);
+      setRoleIdToDelete(null);
       setDeleteDialogOpen(false);
-
-      // 如果当前页只有一条记录且删除后，回到前一页
-      if (data?.records?.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
     } catch (error) {
-      console.error("删除角色失败:", error);
-      toast.error("删除角色失败");
+      const errorMessage =
+        error instanceof Error ? error.message : "删除角色失败，请重试";
+      toast.error(errorMessage);
     }
   };
 
   // 处理搜索
   const handleSearch = (params: RoleSearchParams) => {
     setSearchParams(params);
-    setCurrentPage(1); // 重置为第一页
 
-    // 如果有搜索参数，设置为过滤模式
-    setIsFiltering(
-      Object.keys(params).some((key) => !!params[key as keyof RoleSearchParams])
-    );
+    // 检查是否有搜索条件
+    const hasFilters = Object.values(params).some((value) => !!value);
+    setIsFiltering(hasFilters);
 
-    // 刷新角色列表
-    queryClient.invalidateQueries({ queryKey: ["roles"] });
+    if (!hasFilters) {
+      setFilteredData([]);
+      return;
+    }
+
+    // 客户端筛选数据
+    if (data?.records) {
+      const filtered = api.filterData(data.records, params);
+      setFilteredData(filtered);
+    }
+  };
+
+  // 处理页码变化
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   // 创建表格列定义
   const columns = createColumns(handleEdit, handleDelete);
 
+  // 加载状态
   if (isLoading && !data) return <Loading />;
 
-  const totalRecords = data?.total || 0;
+  // 确定表格数据和分页信息
+  const recordsToDisplay = isFiltering ? filteredData : data?.records || [];
+  const totalRecords = isFiltering ? filteredData.length : data?.total || 0;
   const totalPages = Math.ceil(totalRecords / pageSize);
-  const recordsToDisplay = data?.records || [];
 
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">角色管理</h2>
-        <AddDialog />
+        <AddRoleDialog />
       </div>
 
-      {/* 查询表单 */}
-      <SearchForm onSearch={handleSearch} />
+      {/* 搜索表单 */}
+      <RoleSearchForm onSearch={handleSearch} />
 
-      <div className="text-sm text-muted-foreground mb-4 flex justify-between items-center">
-        <div>
-          {isFiltering
-            ? `查询结果: 共找到 ${totalRecords} 条记录`
-            : `共有 ${totalRecords} 条角色记录`}
-        </div>
-        {/* 可以在这里添加其他操作按钮，如批量导入导出等 */}
+      {/* 表格信息提示 */}
+      <div className="text-sm text-muted-foreground">
+        {isFiltering
+          ? `搜索结果: 共找到 ${filteredData.length} 条记录`
+          : `共有 ${data?.total || 0} 条角色记录`}
       </div>
 
       {/* 数据表格 */}
-      <DataTable<RoleEntity, unknown>
+      <ConfigTable
         columns={columns}
         data={recordsToDisplay}
         isLoading={isLoading}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalItems={totalRecords}
+        totalPages={totalPages}
+        searchKey="name"
+        searchPlaceholder="搜索角色名称..."
+        onPageChange={handlePageChange}
       />
-
-      {/* 分页控件 */}
-      {totalPages > 1 && (
-        <Pagination className="justify-end mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                }}
-                className={
-                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
-                }
-                aria-disabled={currentPage === 1}
-              />
-            </PaginationItem>
-
-            {/* 动态生成页码链接 */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(
-                (page) =>
-                  page === 1 ||
-                  page === totalPages ||
-                  (page >= currentPage - 2 && page <= currentPage + 2)
-              )
-              .map((page, index, arr) => (
-                <>
-                  {index > 0 && page - arr[index - 1] > 1 && (
-                    <PaginationItem key={`ellipsis-start-${page}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  )}
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(page);
-                      }}
-                      isActive={currentPage === page}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                </>
-              ))}
-            {currentPage < totalPages - 3 && totalPages > 5 && (
-              <PaginationItem key="ellipsis-end">
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                }}
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-                aria-disabled={currentPage === totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
 
       {/* 编辑角色对话框 */}
-      <EditDialog
-        role={selectedRole}
-        open={editDialogOpen}
-        onClose={handleCloseEditDialog}
-      />
+      {selectedRole && (
+        <EditRoleDialog
+          role={selectedRole}
+          open={editDialogOpen}
+          onClose={handleCloseEditDialog}
+        />
+      )}
 
       {/* 删除确认对话框 */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -242,7 +173,7 @@ export default function RoleManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
             <AlertDialogDescription>
-              确定要删除此角色吗？此操作不可撤销。
+              确定要删除此角色吗？此操作不可撤销，可能会影响已分配此角色的用户。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
