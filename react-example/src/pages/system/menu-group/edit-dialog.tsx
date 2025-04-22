@@ -24,9 +24,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import * as api from "./api";
-import {
-  type MenuGroupEntity,
-  type UpdateMenuGroupRequest,
+import type {
+  MenuGroupEntity,
+  UpdateMenuGroupRequest,
 } from "@/services/api/api";
 
 // 表单验证模式
