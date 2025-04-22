@@ -10,19 +10,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface SignupRequest {
-  /** @example "user" */
-  username: string;
-  /** @example "user@example.com" */
-  email: string;
-  /** @example "123456" */
-  password: string;
-}
-
-export interface SignupResponse {
-  id: string;
-}
-
 export interface SuccessResponse {
   /**
    * 服务端处理结果状态码
@@ -36,6 +23,77 @@ export interface SuccessResponse {
   message: string;
   /** 服务端处理结果数据 */
   data: object;
+}
+
+export interface SystemCodeEntity {
+  id: string;
+  /**
+   * 系统码
+   * @example "ABCD1234-5678-EFGH-9012-IJKLMNOPQRST"
+   */
+  code: string;
+  /**
+   * 是否已使用
+   * @example false
+   */
+  is_used: boolean;
+  /**
+   * 过期时间
+   * @format date-time
+   * @example "2025-05-22T00:00:00.000Z"
+   */
+  expires_at: string;
+}
+
+export interface AdminRegisterRequest {
+  /**
+   * 系统码
+   * @example "ABCD1234-5678-EFGH-9012-IJKLMNOPQRST"
+   */
+  systemCode: string;
+  /**
+   * 管理员用户名
+   * @example "admin"
+   */
+  username: string;
+  /**
+   * 管理员邮箱
+   * @example "admin@example.com"
+   */
+  email: string;
+  /**
+   * 管理员密码
+   * @example "password123"
+   */
+  password: string;
+  /**
+   * 手机号
+   * @example "1234567890"
+   */
+  phone?: string;
+  /**
+   * 国家代码
+   * @example "+86"
+   */
+  country_code?: string;
+  /**
+   * 地址
+   * @example "北京市朝阳区"
+   */
+  address?: string;
+}
+
+export interface SignupRequest {
+  /** @example "user" */
+  username: string;
+  /** @example "user@example.com" */
+  email: string;
+  /** @example "123456" */
+  password: string;
+}
+
+export interface SignupResponse {
+  id: string;
 }
 
 export interface SigninResponse {
@@ -547,6 +605,59 @@ export class Api<SecurityDataType extends unknown> {
     this.http.request<void, any>({
       path: `/api/v1/ping`,
       method: "GET",
+      ...params,
+    });
+
+  /**
+   * @description 检查系统是否已初始化，如果已初始化返回true，否则返回false
+   *
+   * @tags system-init
+   * @name CheckSystemInit
+   * @summary 检查系统是否已初始化
+   * @request GET:/api/v1/system-init/check
+   */
+  checkSystemInit = (params: RequestParams = {}) =>
+    this.http.request<void, any>({
+      path: `/api/v1/system-init/check`,
+      method: "GET",
+      ...params,
+    });
+
+  /**
+   * @description 生成系统初始化码，仅在系统未初始化时可用，用于后续注册管理员账号
+   *
+   * @tags system-init
+   * @name GenerateSystemCode
+   * @summary 生成系统初始化码
+   * @request POST:/api/v1/system-init/generate-code
+   */
+  generateSystemCode = (params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: SystemCodeEntity;
+      },
+      any
+    >({
+      path: `/api/v1/system-init/generate-code`,
+      method: "POST",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * @description 使用系统码注册管理员账号，同时初始化系统
+   *
+   * @tags system-init
+   * @name RegisterAdmin
+   * @summary 使用系统码注册管理员账号
+   * @request POST:/api/v1/system-init/register-admin
+   */
+  registerAdmin = (data: AdminRegisterRequest, params: RequestParams = {}) =>
+    this.http.request<void, void>({
+      path: `/api/v1/system-init/register-admin`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
       ...params,
     });
 

@@ -1,14 +1,13 @@
 import RootLayout from "@/pages/root";
 import AuthLayout from "@/pages/auth";
-import Home from "@/pages/home";
 import Welcome from "@/pages/welcome";
 import { lazy } from "react";
 import type { PermissionRoute } from "./type";
-import { api } from "@/services";
 import HomeLayout from "@/layouts/home-layout";
 
 const Signin = lazy(() => import("@/pages/auth/signin"));
 const Signup = lazy(() => import("@/pages/auth/signup"));
+const SystemInit = lazy(() => import("@/pages/system-init"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 export const ROUTES = {
@@ -16,6 +15,7 @@ export const ROUTES = {
   AUTH: "/auth",
   SIGNUP: "/auth/signup",
   SIGNIN: "/auth/signin",
+  SYSTEM_INIT: "/system-init",
   TASK: "/task",
   PROFILE: "/profile",
   ALL: "*",
@@ -67,5 +67,9 @@ export const publicRoutes: PermissionRoute[] = [
         Component: Signup,
       },
     ],
+  },
+  {
+    path: ROUTES.SYSTEM_INIT,
+    Component: SystemInit,
   },
 ];
