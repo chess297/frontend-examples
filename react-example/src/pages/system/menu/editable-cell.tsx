@@ -3,15 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import type { Row, Column } from "@tanstack/react-table";
-import type { MenuEntity } from "@/services/api/api";
+import type { MenuResponse } from "@/services/api/api";
 
 interface EditableCellProps {
   value: string;
-  row: Row<MenuEntity>;
-  column: Column<MenuEntity, unknown>;
+  row: Row<MenuResponse>;
+  column: Column<MenuResponse, unknown>;
   onSave: (
-    row: Row<MenuEntity>,
-    column: Column<MenuEntity, unknown>,
+    row: Row<MenuResponse>,
+    column: Column<MenuResponse, unknown>,
     value: string
   ) => void;
 }

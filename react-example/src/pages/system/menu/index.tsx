@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import type { MenuEntity } from "@/services/api/api";
 import { api } from "@/services";
 import Loading from "@/components/loading";
 
@@ -23,10 +22,11 @@ import AddDialog from "./add-dialog";
 import { toast } from "sonner";
 import type { Row, Column } from "@tanstack/react-table";
 import { SearchForm, type MenuSearchParams } from "./search-form";
+import type { MenuResponse } from "@/services/api/api";
 
 export default function MenuManager() {
   const queryClient = useQueryClient();
-  const [filteredData, setFilteredData] = useState<MenuEntity[]>([]);
+  const [filteredData, setFilteredData] = useState<MenuResponse[]>([]);
   const [searchParams, setSearchParams] = useState<MenuSearchParams>({});
   const [isFiltering, setIsFiltering] = useState(false);
 
@@ -41,8 +41,8 @@ export default function MenuManager() {
 
   // 处理单元格编辑保存
   const handleSaveCell = async (
-    row: Row<MenuEntity>,
-    column: Column<MenuEntity, unknown>,
+    row: Row<MenuResponse>,
+    column: Column<MenuResponse, unknown>,
     value: string
   ) => {
     try {
@@ -52,24 +52,21 @@ export default function MenuManager() {
       // 根据列ID更新相应的菜单属性
       const updatedMenu = {
         ...menu,
-        mate: {
-          ...menu.mate,
-        },
       };
 
       // 根据列ID更新相应的属性
       switch (columnId) {
         case "title":
-          updatedMenu.mate.title = value;
+          updatedMenu.title = value;
           break;
         case "path":
-          updatedMenu.mate.path = value;
+          updatedMenu.path = value;
           break;
         case "icon":
-          updatedMenu.mate.icon = value;
+          updatedMenu.icon = value;
           break;
         case "component":
-          updatedMenu.mate.component = value;
+          updatedMenu.component = value;
           break;
         default:
           break;
@@ -114,15 +111,13 @@ export default function MenuManager() {
         // 根据不同字段进行模糊匹配
         switch (key) {
           case "title":
-            return menu.mate.title.toLowerCase().includes(value.toLowerCase());
+            return menu.title.toLowerCase().includes(value.toLowerCase());
           case "path":
-            return menu.mate.path.toLowerCase().includes(value.toLowerCase());
+            return menu.path.toLowerCase().includes(value.toLowerCase());
           case "icon":
-            return menu.mate.icon.toLowerCase().includes(value.toLowerCase());
+            return menu.icon.toLowerCase().includes(value.toLowerCase());
           case "component":
-            return menu.mate.component
-              .toLowerCase()
-              .includes(value.toLowerCase());
+            return menu.component.toLowerCase().includes(value.toLowerCase());
           default:
             return true;
         }
@@ -163,7 +158,7 @@ export default function MenuManager() {
       </div>
 
       {/* 数据表格 */}
-      <DataTable<MenuEntity, unknown>
+      <DataTable<MenuResponse, unknown>
         columns={columns}
         data={recordsToDisplay}
         isLoading={isLoading}

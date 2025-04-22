@@ -43,13 +43,11 @@ export default function HomeLayout() {
       const isLast = index === pathSegmentsToProcess.length - 1;
 
       // 查找对应的菜单项来获取标题
-      const menuItem = menus.find((menu) => menu.mate.path === currentPath);
-      const title = menuItem ? menuItem.mate.title : segment;
+      const menuItem = menus.find((menu) => menu.path === currentPath);
+      const title = menuItem ? menuItem.title : segment;
 
       // 检查路径是否有效
-      const isValidPath = !!menus.find(
-        (menu) => menu.mate.path === currentPath
-      );
+      const isValidPath = !!menus.find((menu) => menu.path === currentPath);
 
       items.push(
         <BreadcrumbItem key={segment}>

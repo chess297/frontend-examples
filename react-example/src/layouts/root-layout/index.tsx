@@ -5,11 +5,12 @@ import {
 } from "react-router";
 import { useToggle } from "ahooks";
 import { components, publicRoutes, ROUTES } from "@/router";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import RequireAuth from "../require-auth-layout";
 import { useAuthStore } from "@/hooks";
 import Loading from "@/components/loading";
 import { api } from "@/services";
+import { useSidebarStore } from "@/hooks/use-sidebar-store";
 
 export function LazyComponent({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<Loading />}>{children}</Suspense>;
@@ -28,18 +29,24 @@ async function getInitState() {
 
 export function Root() {
   const [router, setRouter] = useState(createBrowserRouter(publicRoutes));
-
+  const initCalledRef = useRef(false);
   const [isLoading, { setRight }] = useToggle(true);
   const { menus, setMenus, getUserInfo, getUserPermission } = useAuthStore();
+  const { fetchAdminMenuGround } = useSidebarStore();
 
   useEffect(() => {
+    // Skip if already initialized to prevent duplicate calls in StrictMode
+    if (initCalledRef.current) return;
+
+    initCalledRef.current = true;
     getInitState().then(async (res) => {
       setMenus(res.menus);
       await getUserInfo();
+      fetchAdminMenuGround();
       // await getUserPermission();
       setRight();
     });
-  }, [setMenus, setRight, getUserInfo]);
+  }, [setMenus, setRight, getUserInfo, fetchAdminMenuGround]);
 
   useEffect(() => {
     const menuRoutes: RouteObject[] = [

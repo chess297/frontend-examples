@@ -41,11 +41,11 @@ export function NavAdmin() {
         {adminMenuGround.menus.map((item) => (
           <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
-              <Link to={item.mate.path}>
+              <Link to={item.path}>
                 {/* <item.icon /> */}
                 {/* biome-ignore lint/suspicious/noExplicitAny: <explanation> */}
-                <DynamicIcon name={item.mate.icon as any} />
-                <span>{item.mate.title}</span>
+                <DynamicIcon name={item.icon as any} />
+                <span>{item.title}</span>
               </Link>
             </SidebarMenuButton>
             {/* <DropdownMenu>

@@ -37,7 +37,7 @@ export const createColumns = (
       accessorKey: "name",
       header: "用户名",
       cell: ({ row }) => {
-        const name = row.original.name;
+        const name = row.original.username;
         return <span className="font-medium">{name}</span>;
       },
     },
@@ -49,13 +49,7 @@ export const createColumns = (
         return <span className="text-muted-foreground">{email || "-"}</span>;
       },
     },
-    {
-      accessorKey: "nickname",
-      header: "昵称",
-      cell: ({ row }) => {
-        return row.original.nickname || "-";
-      },
-    },
+
     {
       accessorKey: "roles",
       header: "角色",
@@ -91,10 +85,10 @@ export const createColumns = (
       accessorKey: "status",
       header: "状态",
       cell: ({ row }) => {
-        const status = row.original.status;
+        const status = row.original.is_active;
         return (
-          <Badge variant={status === "active" ? "success" : "destructive"}>
-            {status === "active" ? "启用" : "禁用"}
+          <Badge variant={status ? "default" : "destructive"}>
+            {status ? "启用" : "禁用"}
           </Badge>
         );
       },
@@ -103,7 +97,7 @@ export const createColumns = (
       accessorKey: "createdAt",
       header: "创建时间",
       cell: ({ row }) => {
-        const date = row.original.createdAt;
+        const date = row.original.create_at;
         if (!date) return "-";
         return new Date(date).toLocaleString("zh-CN", {
           year: "numeric",

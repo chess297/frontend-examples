@@ -28,11 +28,6 @@ export interface SuccessResponse {
 export interface SystemCodeEntity {
   id: string;
   /**
-   * 系统码
-   * @example "ABCD1234-5678-EFGH-9012-IJKLMNOPQRST"
-   */
-  code: string;
-  /**
    * 是否已使用
    * @example false
    */
@@ -82,6 +77,100 @@ export interface AdminRegisterRequest {
    */
   address?: string;
 }
+
+export interface DictionaryItemEntity {
+  /** 字典项ID */
+  id: string;
+  /** 字典ID */
+  dictionary_id: string;
+  /** 字典项值 */
+  value: string;
+  /** 字典项标签 */
+  label: string;
+  /**
+   * 排序号
+   * @default 0
+   */
+  sort: number;
+  /** 额外数据 */
+  extra?: object;
+}
+
+export interface DictionaryResponseDto {
+  /** 字典ID */
+  id: string;
+  /** 字典代码 */
+  code: string;
+  /** 字典名称 */
+  name: string;
+  /** 字典描述 */
+  description?: object;
+  /** 字典项列表 */
+  items?: DictionaryItemEntity[];
+}
+
+export interface CreateDictionaryDto {
+  /** 字典代码 */
+  code: string;
+  /** 字典名称 */
+  name: string;
+  /** 字典描述 */
+  description?: string;
+  /** 字典项列表 */
+  items?: any[][];
+}
+
+export interface DictionaryListItemDto {
+  /** 字典ID */
+  id: string;
+  /** 字典代码 */
+  code: string;
+  /** 字典名称 */
+  name: string;
+  /** 字典描述 */
+  description?: object;
+  /** 字典项列表 */
+  items?: DictionaryItemEntity[];
+  /** 字典项数量 */
+  itemCount: number;
+}
+
+export interface DictionaryListResponseDto {
+  /** 字典列表 */
+  data: DictionaryListItemDto[];
+  /** 总数量 */
+  total: number;
+  /** 当前页码 */
+  page: number;
+  /** 每页数量 */
+  pageSize: number;
+}
+
+export interface DictionaryByCodeResponseDto {
+  /** 字典ID */
+  id: string;
+  /** 字典代码 */
+  code: string;
+  /** 字典名称 */
+  name: string;
+  /** 字典描述 */
+  description?: object;
+  /** 字典项列表 */
+  items?: DictionaryItemEntity[];
+}
+
+export interface UpdateDictionaryDto {
+  /** 字典代码 */
+  code?: string;
+  /** 字典名称 */
+  name?: string;
+  /** 字典描述 */
+  description?: string;
+  /** 字典项列表 */
+  items?: any[][];
+}
+
+export type Boolean = object;
 
 export interface SignupRequest {
   /** @example "user" */
@@ -150,13 +239,25 @@ export interface BadResponse {
   message: string;
 }
 
+export interface RoleEntity {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+}
+
 export interface UserEntity {
   id: string;
   username: string;
   email: string;
   password: string;
-  roles: string[];
+  /** 用户角色 */
+  roles: RoleEntity[];
   is_active: boolean;
+  /** @format date-time */
+  create_at: string;
+  /** @format date-time */
+  update_at: string;
 }
 
 export interface CreateUserRequest {
@@ -205,13 +306,6 @@ export interface RemoveUserRequest {
   id: string;
   /** 批量删除的用户id列表 */
   ids: string[];
-}
-
-export interface RoleEntity {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
 }
 
 export interface CreateRoleRequest {
@@ -278,6 +372,10 @@ export interface UpdatePermissionDto {
 export interface MenuResponse {
   /** 菜单ID */
   id: string;
+  /** 父菜单ID */
+  parent_id?: object;
+  /** 菜单元数据ID */
+  mate_id?: string;
   /** 菜单名称 */
   title: string;
   /** 菜单路径 */
@@ -286,6 +384,22 @@ export interface MenuResponse {
   icon: string;
   /** 菜单组件 */
   component: string;
+  /** 菜单分组 */
+  groups?: any[];
+  /** 父菜单 */
+  parent?: object;
+  /** 子菜单列表 */
+  children?: any[];
+  /**
+   * 创建时间
+   * @format date-time
+   */
+  create_at?: string;
+  /**
+   * 更新时间
+   * @format date-time
+   */
+  update_at?: string;
 }
 
 export interface CreateMenuRequest {
@@ -347,25 +461,13 @@ export interface UpdateMenuMateDto {
   component?: string;
 }
 
-export interface MenuEntity {
-  id: string;
-  /** 菜单父级 */
-  parent: object;
-  /** 菜单子集 */
-  children: string[];
-  /** 菜单需要的权限 */
-  permissions: object;
-  /** 菜单元信息 */
-  mate: MenuMateEntity;
-}
-
 export interface MenuGroupEntity {
   id: string;
   icon: string;
   description: string;
   title: string;
   parent_id: object;
-  menus: MenuEntity[];
+  menus: MenuResponse[];
 }
 
 export interface CreateMenuGroupRequest {
@@ -658,6 +760,168 @@ export class Api<SecurityDataType extends unknown> {
       method: "POST",
       body: data,
       type: ContentType.Json,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name DictionaryControllerCreateV1
+   * @summary 创建字典
+   * @request POST:/api/v1/dictionary
+   * @secure
+   */
+  dictionaryControllerCreateV1 = (
+    data: CreateDictionaryDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: DictionaryResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name DictionaryControllerFindAllV1
+   * @summary 查询字典列表
+   * @request GET:/api/v1/dictionary
+   */
+  dictionaryControllerFindAllV1 = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      /** 字典代码 */
+      code?: string;
+      /** 字典名称 */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: DictionaryListResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name FindDistByCode
+   * @summary 根据代码查询字典
+   * @request GET:/api/v1/dictionary/code/{code}
+   */
+  findDistByCode = (code: string, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: DictionaryByCodeResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary/code/${code}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name DictionaryControllerFindOneV1
+   * @summary 查询字典详情
+   * @request GET:/api/v1/dictionary/{id}
+   */
+  dictionaryControllerFindOneV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: DictionaryResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary/${id}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name DictionaryControllerUpdateV1
+   * @summary 更新字典
+   * @request PATCH:/api/v1/dictionary/{id}
+   * @secure
+   */
+  dictionaryControllerUpdateV1 = (
+    id: string,
+    data: UpdateDictionaryDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: DictionaryResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary/${id}`,
+      method: "PATCH",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags dictionary
+   * @name DictionaryControllerRemoveV1
+   * @summary 删除字典
+   * @request DELETE:/api/v1/dictionary/{id}
+   * @secure
+   */
+  dictionaryControllerRemoveV1 = (id: string, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: Boolean;
+      },
+      any
+    >({
+      path: `/api/v1/dictionary/${id}`,
+      method: "DELETE",
+      secure: true,
+      format: "json",
       ...params,
     });
 
@@ -1008,6 +1272,50 @@ export class Api<SecurityDataType extends unknown> {
     >({
       path: `/api/v1/permission`,
       method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * @description 查询所有权限，支持分页和筛选
+   *
+   * @tags permission
+   * @name FindManyPermission
+   * @summary 查询所有权限
+   * @request GET:/api/v1/permission/list
+   */
+  findManyPermission = (
+    query?: {
+      /**
+       * 当前页码
+       * @default 1
+       */
+      page?: number;
+      /**
+       * 每页显示条数
+       * @default 10
+       */
+      limit?: number;
+      /** 权限名称 */
+      name?: string;
+      /** 权限描述 */
+      description?: string;
+      /** 资源名称 */
+      resource?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<
+      PaginationResponse & {
+        data?: PaginationData & {
+          records?: PermissionEntity[];
+        };
+      },
+      any
+    >({
+      path: `/api/v1/permission/list`,
+      method: "GET",
+      query: query,
       format: "json",
       ...params,
     });

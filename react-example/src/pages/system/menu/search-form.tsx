@@ -1,7 +1,7 @@
 import {
   SearchForm as GenericSearchForm,
-  FieldDefinition,
-  OptionType,
+  type FieldDefinition,
+  type OptionType,
 } from "@/components/search-form";
 
 // 查询参数的定义

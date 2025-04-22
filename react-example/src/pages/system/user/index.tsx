@@ -64,7 +64,7 @@ export default function UserManager() {
       };
 
       // Assume api.findManyUser exists and accepts pagination/filtering params
-      const response = await api.userControllerFindAllV1(queryParams);
+      const response = await api.queryUsers(queryParams);
       return response.data.data; // Adjust based on actual API response structure
     },
     // Keep previous data while fetching new data for smoother pagination

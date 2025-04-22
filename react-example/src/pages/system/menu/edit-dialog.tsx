@@ -29,7 +29,7 @@ import { api } from "@/services";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, PenIcon } from "lucide-react";
-import type { MenuEntity } from "@/services/api/api";
+import type { MenuResponse } from "@/services/api/api";
 
 const formSchema = z.object({
   title: z.string().min(1, "菜单名称不能为空"),
@@ -39,7 +39,7 @@ const formSchema = z.object({
 });
 
 interface EditDialogProps {
-  menu: MenuEntity;
+  menu: MenuResponse;
 }
 
 export default function EditDialog({ menu }: EditDialogProps) {
@@ -50,10 +50,10 @@ export default function EditDialog({ menu }: EditDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: menu.mate.title,
-      path: menu.mate.path,
-      icon: menu.mate.icon,
-      component: menu.mate.component,
+      title: menu.title,
+      path: menu.path,
+      icon: menu.icon,
+      component: menu.component,
     },
   });
 
@@ -61,10 +61,10 @@ export default function EditDialog({ menu }: EditDialogProps) {
   useEffect(() => {
     if (menu) {
       form.reset({
-        title: menu.mate.title,
-        path: menu.mate.path,
-        icon: menu.mate.icon,
-        component: menu.mate.component,
+        title: menu.title,
+        path: menu.path,
+        icon: menu.icon,
+        component: menu.component,
       });
     }
   }, [form, menu]);
@@ -77,7 +77,7 @@ export default function EditDialog({ menu }: EditDialogProps) {
       const updatedMenu = {
         ...menu,
         mate: {
-          ...menu.mate,
+          ...menu,
           title: values.title,
           path: values.path,
           icon: values.icon,

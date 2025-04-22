@@ -23,8 +23,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavAdmin } from "./nav-admin";
-import { useSidebarStore } from "@/hooks/use-sidebar-store";
-import { useEffect } from "react";
 
 // This is sample data.
 const data = {
@@ -157,11 +155,6 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { fetchAdminMenuGround } = useSidebarStore();
-  useEffect(() => {
-    fetchAdminMenuGround();
-  }, [fetchAdminMenuGround]);
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

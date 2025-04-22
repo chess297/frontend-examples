@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { MenuEntity } from "@/services/api/api";
+import type { MenuResponse } from "@/services/api/api";
 import type { ColumnDef, Row, Column } from "@tanstack/react-table";
 import { Edit, Trash, FileEdit } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
@@ -9,12 +9,12 @@ import { EditableCell } from "./editable-cell";
 
 export const createColumns = (
   onSaveCell: (
-    row: Row<MenuEntity>,
-    column: Column<MenuEntity, unknown>,
+    row: Row<MenuResponse>,
+    column: Column<MenuResponse, unknown>,
     value: string
   ) => Promise<void>,
   onDelete: (id: string) => void
-): ColumnDef<MenuEntity>[] => [
+): ColumnDef<MenuResponse>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -38,7 +38,7 @@ export const createColumns = (
     enableHiding: false,
   },
   {
-    accessorFn: (row) => row.mate.title,
+    accessorFn: (row) => row.title,
     id: "title",
     header: "菜单名称",
     cell: ({ row, column, getValue }) => (
@@ -51,7 +51,7 @@ export const createColumns = (
     ),
   },
   {
-    accessorFn: (row) => row.mate.path,
+    accessorFn: (row) => row.path,
     id: "path",
     header: "菜单路径",
     cell: ({ row, column, getValue }) => (
@@ -64,7 +64,7 @@ export const createColumns = (
     ),
   },
   {
-    accessorFn: (row) => row.mate.icon,
+    accessorFn: (row) => row.icon,
     id: "icon",
     header: "图标",
     cell: ({ row, column, getValue }) => (
@@ -80,7 +80,7 @@ export const createColumns = (
     ),
   },
   {
-    accessorFn: (row) => row.mate.component,
+    accessorFn: (row) => row.component,
     id: "component",
     header: "组件路径",
     cell: ({ row, column, getValue }) => (
