@@ -88,7 +88,6 @@ export interface AdminRegisterRequest {
 }
 
 export interface DictionaryItemEntity {
-  /** 字典项ID */
   id: string;
   /** @format date-time */
   create_at: string;
@@ -110,7 +109,6 @@ export interface DictionaryItemEntity {
 }
 
 export interface DictionaryResponseDto {
-  /** 字典ID */
   id: string;
   /** @format date-time */
   create_at: string;
@@ -138,7 +136,6 @@ export interface CreateDictionaryDto {
 }
 
 export interface DictionaryListItemDto {
-  /** 字典ID */
   id: string;
   /** @format date-time */
   create_at: string;
@@ -168,7 +165,6 @@ export interface DictionaryListResponseDto {
 }
 
 export interface DictionaryByCodeResponseDto {
-  /** 字典ID */
   id: string;
   /** @format date-time */
   create_at: string;
@@ -288,6 +284,7 @@ export interface CreateUserRequest {
   phone: string;
   country_code: string;
   address: string;
+  avatar_url: string;
   /** 用户角色id列表 */
   role_ids: string[];
 }
@@ -339,6 +336,7 @@ export interface UpdateUserRequest {
   phone?: string;
   country_code?: string;
   address?: string;
+  avatar_url?: string;
   /** 用户角色id列表 */
   role_ids?: string[];
 }
@@ -365,6 +363,58 @@ export interface UpdateAvatarRequest {
    * @format binary
    */
   file: File;
+}
+
+export interface PresignedUrlResponseDto {
+  /** 预签名上传 URL */
+  url: string;
+  /** 上传表单中需要包含的字段 */
+  formData: object;
+  /** 文件 key（用于后续查询文件） */
+  key: string;
+  /** 过期时间（秒） */
+  expiresIn: number;
+}
+
+export interface PresignedUrlRequestDto {
+  /**
+   * 文件名
+   * @example "example.jpg"
+   */
+  filename: string;
+  /**
+   * 文件类型
+   * @example "image/jpeg"
+   */
+  contentType: string;
+  /**
+   * 过期时间（秒）
+   * @example 300
+   */
+  expiry?: number;
+}
+
+export interface CompleteUploadDto {
+  /**
+   * 文件 key
+   * @example "5a7b9c4d-1234-5678-90ab-cdefghijklmn.jpg"
+   */
+  key: string;
+  /**
+   * 原始文件名
+   * @example "example.jpg"
+   */
+  originalName: string;
+  /**
+   * 文件类型
+   * @example "image/jpeg"
+   */
+  contentType: string;
+  /**
+   * 文件大小（字节）
+   * @example 1024
+   */
+  size: number;
 }
 
 export interface CreateRoleResponse {
@@ -468,17 +518,11 @@ export interface MenuResponse {
   /** 菜单名称 */
   title: string;
   /** 菜单路径 */
-  path: string;
+  path: object;
   /** 菜单图标 */
   icon: string;
   /** 菜单组件 */
-  component: string;
-  /** 菜单分组 */
-  groups?: any[];
-  /** 父菜单 */
-  parent?: object;
-  /** 子菜单列表 */
-  children?: any[];
+  component: object;
   /**
    * 创建时间
    * @format date-time
@@ -521,45 +565,6 @@ export interface UpdateMenuDto {
   parent_id?: string;
   /** 菜单分组ID */
   groups?: string[];
-}
-
-export interface MenuMateEntity {
-  id: string;
-  /** @format date-time */
-  create_at: string;
-  /** @format date-time */
-  update_at: string;
-  menu_id: string;
-  title: string;
-  path: string;
-  icon: string;
-  component: string;
-}
-
-export interface CreateMenuMateDto {
-  id: string;
-  /** @format date-time */
-  create_at: string;
-  /** @format date-time */
-  update_at: string;
-  menu_id: string;
-  title: string;
-  path: string;
-  icon: string;
-  component: string;
-}
-
-export interface UpdateMenuMateDto {
-  id?: string;
-  /** @format date-time */
-  create_at?: string;
-  /** @format date-time */
-  update_at?: string;
-  menu_id?: string;
-  title?: string;
-  path?: string;
-  icon?: string;
-  component?: string;
 }
 
 export interface MenuGroupEntity {
@@ -1193,6 +1198,29 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
+   * @name UpdateUserInfo
+   * @summary 获取用户信息
+   * @request PATCH:/api/v1/user/info
+   */
+  updateUserInfo = (data: UpdateUserRequest, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: UserResponse;
+      },
+      any
+    >({
+      path: `/api/v1/user/info`,
+      method: "PATCH",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags user
    * @name GetUser
    * @summary 查询单个用户
    * @request GET:/api/v1/user/{id}
@@ -1214,13 +1242,11 @@ export class Api<SecurityDataType extends unknown> {
    * No description
    *
    * @tags user
-   * @name GetUser2
+   * @name UpdateUserWithId
    * @summary 查询单个用户
    * @request PATCH:/api/v1/user/{id}
-   * @originalName getUser
-   * @duplicate
    */
-  getUser2 = (
+  updateUserWithId = (
     id: string,
     data: UpdateUserRequest,
     params: RequestParams = {},
@@ -1286,14 +1312,15 @@ export class Api<SecurityDataType extends unknown> {
   /**
    * No description
    *
-   * @tags attachment
+   * @tags 附件
    * @name AttachmentControllerUploadFileV1
    * @summary 上传文件
    * @request POST:/api/v1/attachment/upload
    */
   attachmentControllerUploadFileV1 = (
-    query: {
-      storageType: any;
+    query?: {
+      /** 存储类型，LOCAL：本地存储，CLOUD：MinIO存储 */
+      storageType?: "LOCAL" | "CLOUD";
     },
     params: RequestParams = {},
   ) =>
@@ -1307,7 +1334,50 @@ export class Api<SecurityDataType extends unknown> {
   /**
    * No description
    *
-   * @tags attachment
+   * @tags 附件
+   * @name GetUploadUrl
+   * @summary 获取预签名上传 URL（前端直传）
+   * @request POST:/api/v1/attachment/presigned-url
+   */
+  getUploadUrl = (data: PresignedUrlRequestDto, params: RequestParams = {}) =>
+    this.http.request<
+      SuccessResponse & {
+        data?: PresignedUrlResponseDto;
+      },
+      any
+    >({
+      path: `/api/v1/attachment/presigned-url`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags 附件
+   * @name AttachmentControllerCompleteUploadV1
+   * @summary 完成预签名上传（前端直传完成后调用）
+   * @request POST:/api/v1/attachment/complete-upload
+   */
+  attachmentControllerCompleteUploadV1 = (
+    data: CompleteUploadDto,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<void, any>({
+      path: `/api/v1/attachment/complete-upload`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags 附件
    * @name AttachmentControllerGetAttachmentByIdV1
    * @summary 通过ID获取附件信息
    * @request GET:/api/v1/attachment/{id}
@@ -1325,9 +1395,9 @@ export class Api<SecurityDataType extends unknown> {
   /**
    * No description
    *
-   * @tags attachment
+   * @tags 附件
    * @name AttachmentControllerServeFileV1
-   * @summary 下载/查看文件
+   * @summary 下载/查看文件（兼容旧接口）
    * @request GET:/api/v1/attachment/file/{filename}
    */
   attachmentControllerServeFileV1 = (
@@ -1738,140 +1808,6 @@ export class Api<SecurityDataType extends unknown> {
   removeMenu = (id: string, params: RequestParams = {}) =>
     this.http.request<void, any>({
       path: `/api/v1/menu/${id}`,
-      method: "DELETE",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags menu-mate
-   * @name CreateMenuMate
-   * @summary 创建一个菜单项
-   * @request POST:/api/v1/menu-mate
-   */
-  createMenuMate = (data: CreateMenuMateDto, params: RequestParams = {}) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: MenuMateEntity;
-      },
-      any
-    >({
-      path: `/api/v1/menu-mate`,
-      method: "POST",
-      body: data,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags menu-mate
-   * @name QueryMenuMate
-   * @summary 查询菜单元数据
-   * @request GET:/api/v1/menu-mate
-   */
-  queryMenuMate = (
-    query?: {
-      /**
-       * 当前页码
-       * @default 1
-       */
-      page?: number;
-      /**
-       * 每页显示条数
-       * @default 10
-       */
-      limit?: number;
-      /** 菜单ID */
-      menu_id?: string;
-      /** 标题 */
-      title?: string;
-      /** 路径 */
-      path?: string;
-      /** 图标 */
-      icon?: string;
-      /** 组件 */
-      component?: string;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.http.request<
-      PaginationResponse & {
-        data?: PaginationData & {
-          records?: MenuMateEntity[];
-        };
-      },
-      any
-    >({
-      path: `/api/v1/menu-mate`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags menu-mate
-   * @name GetMenuMate
-   * @summary 查询菜单元数据
-   * @request GET:/api/v1/menu-mate/{id}
-   */
-  getMenuMate = (id: string, params: RequestParams = {}) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: MenuMateEntity;
-      },
-      any
-    >({
-      path: `/api/v1/menu-mate/${id}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags menu-mate
-   * @name UpdateMenuMate
-   * @summary 更新菜单元数据
-   * @request PATCH:/api/v1/menu-mate/{id}
-   */
-  updateMenuMate = (
-    id: string,
-    data: UpdateMenuMateDto,
-    params: RequestParams = {},
-  ) =>
-    this.http.request<
-      SuccessResponse & {
-        data?: MenuMateEntity;
-      },
-      any
-    >({
-      path: `/api/v1/menu-mate/${id}`,
-      method: "PATCH",
-      body: data,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags menu-mate
-   * @name DeleteMenuMate
-   * @summary 删除菜单元数据
-   * @request DELETE:/api/v1/menu-mate/{id}
-   */
-  deleteMenuMate = (id: string, params: RequestParams = {}) =>
-    this.http.request<void, any>({
-      path: `/api/v1/menu-mate/${id}`,
       method: "DELETE",
       ...params,
     });

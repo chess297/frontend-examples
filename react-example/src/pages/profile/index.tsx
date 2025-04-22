@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Camera, Loader2 } from "lucide-react";
-import { api } from "@/services";
+import { api, uploadFile } from "@/services";
 
 import {
   Card,
@@ -98,12 +98,13 @@ export default function Profile() {
 
     setIsLoading(true);
     try {
-      await api.getUser2(user_info.id, {
+      await api.updateUserInfo({
         username: data.username,
         email: data.email,
         phone: data.phone || "",
         country_code: data.country_code || "",
         address: data.address || "",
+        avatar_url: avatarUrl || user_info.avatar_url,
       });
 
       // 刷新用户信息
@@ -155,9 +156,7 @@ export default function Profile() {
 
       // 调用上传接口
       // 注意：根据实际API调整此处请求方式
-      const response = await api.uploadAvatar({
-        file,
-      });
+      const response = await uploadFile(file);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
