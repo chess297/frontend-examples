@@ -6,13 +6,13 @@ import { Edit } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ConfigForm,
   type FormFieldConfig,
@@ -41,33 +41,45 @@ export default function EditMenuDialog({
   children,
 }: EditMenuDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      // 创建更新菜单数据
-      const updateData: UpdateMenuDto = {
-        title: values.title,
-        path: values.path,
-        icon: values.icon,
-        component: values.component,
-        parent_id: values.parent_id,
-      };
-
-      // 调用更新菜单服务
-      await api.updateMenu(menu.id, updateData);
-      toast.success("菜单更新成功！");
-
-      // 重新获取菜单列表
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
-
-      return true;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "更新菜单失败，请重试";
-      toast.error(errorMessage);
-      throw error;
+  const handleOpenChange = (open: boolean) => {
+    if (!isSubmitting) {
+      setIsOpen(open);
     }
+  };
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
+    // 创建更新菜单数据
+    const updateData: UpdateMenuDto = {
+      title: values.title,
+      path: values.path,
+      icon: values.icon,
+      component: values.component,
+      parent_id: values.parent_id,
+    };
+
+    // 调用更新菜单服务
+    return api
+      .updateMenu(menu.id, updateData)
+      .then(() => {
+        toast.success("菜单更新成功！");
+        // 重新获取菜单列表
+        queryClient.invalidateQueries({ queryKey: ["menus"] });
+        return true;
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "更新菜单失败，请重试";
+        toast.error(errorMessage);
+        return false;
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   // 表单字段定义
@@ -113,20 +125,20 @@ export default function EditMenuDialog({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         {children || (
           <Button variant="ghost" size="icon" title="编辑">
             <Edit className="h-4 w-4" />
           </Button>
         )}
-      </AlertDialogTrigger>
+      </DialogTrigger>
 
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>编辑菜单</AlertDialogTitle>
-          <AlertDialogDescription>修改菜单信息</AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>编辑菜单</DialogTitle>
+          <DialogDescription>修改菜单信息</DialogDescription>
+        </DialogHeader>
 
         <ConfigForm
           config={{
@@ -136,10 +148,12 @@ export default function EditMenuDialog({
             defaultValues,
             onSubmit: handleSubmit,
             queryKey: ["menus"],
+            submitButtonText: isSubmitting ? "提交中..." : "保存",
+            cancelButtonText: "取消",
           }}
           onClose={() => setIsOpen(false)}
         />
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -6,13 +6,13 @@ import { Edit } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ConfigForm,
   type FormFieldConfig,
@@ -42,33 +42,52 @@ export default function EditRoleDialog({
   children,
 }: EditRoleDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   // 支持受控和非受控模式
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const onClose = controlledOnClose || (() => setInternalOpen(false));
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      // 创建更新角色数据
-      const updateData: UpdateRoleRequest = {
-        name: values.name,
-        description: values.description,
-        is_active: values.is_active,
-      };
-
-      // 调用更新角色服务
-      await api.update(role.id, updateData);
-      toast.success("角色更新成功！");
-
-      // 重新获取角色列表
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "更新角色失败，请重试";
-      toast.error(errorMessage);
-      throw error;
+  const handleOpenChange = (open: boolean) => {
+    if (!isSubmitting) {
+      if (controlledOpen === undefined) {
+        setInternalOpen(open);
+      } else if (controlledOnClose && !open) {
+        controlledOnClose();
+      }
     }
+  };
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
+    // 创建更新角色数据
+    const updateData: UpdateRoleRequest = {
+      name: values.name,
+      description: values.description,
+      is_active: values.is_active,
+    };
+
+    // 调用更新角色服务
+    return api
+      .update(role.id, updateData)
+      .then(() => {
+        toast.success("角色更新成功！");
+        // 重新获取角色列表
+        queryClient.invalidateQueries({ queryKey: ["roles"] });
+        onClose();
+        return true;
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "更新角色失败，请重试";
+        toast.error(errorMessage);
+        return false;
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   // 表单字段定义
@@ -88,7 +107,7 @@ export default function EditRoleDialog({
       description: "角色的职责和权限范围描述",
     },
     {
-      name: "status",
+      name: "is_active",
       label: "启用状态",
       type: "checkbox",
       description: "设置角色是否启用",
@@ -99,7 +118,7 @@ export default function EditRoleDialog({
   const defaultValues = {
     name: role.name,
     description: role.description || "",
-    status: Boolean(role.id),
+    is_active: Boolean(role.is_active),
   };
 
   // 如果没有数据则不渲染
@@ -108,12 +127,12 @@ export default function EditRoleDialog({
   // 如果是受控模式且没有trigger，直接返回内容
   if (controlledOpen !== undefined && !children) {
     return (
-      <AlertDialog open={isOpen} onOpenChange={onClose}>
-        <AlertDialogContent className="sm:max-w-[500px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>编辑角色</AlertDialogTitle>
-            <AlertDialogDescription>修改角色信息</AlertDialogDescription>
-          </AlertDialogHeader>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>编辑角色</DialogTitle>
+            <DialogDescription>修改角色信息</DialogDescription>
+          </DialogHeader>
 
           <ConfigForm
             config={{
@@ -123,32 +142,31 @@ export default function EditRoleDialog({
               defaultValues,
               onSubmit: handleSubmit,
               queryKey: ["roles"],
+              submitButtonText: isSubmitting ? "提交中..." : "保存",
+              cancelButtonText: "取消",
             }}
             onClose={onClose}
           />
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     );
   }
 
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={controlledOpen !== undefined ? onClose : setInternalOpen}
-    >
-      <AlertDialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         {children || (
           <Button variant="ghost" size="icon" title="编辑">
             <Edit className="h-4 w-4" />
           </Button>
         )}
-      </AlertDialogTrigger>
+      </DialogTrigger>
 
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>编辑角色</AlertDialogTitle>
-          <AlertDialogDescription>修改角色信息</AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>编辑角色</DialogTitle>
+          <DialogDescription>修改角色信息</DialogDescription>
+        </DialogHeader>
 
         <ConfigForm
           config={{
@@ -158,14 +176,12 @@ export default function EditRoleDialog({
             defaultValues,
             onSubmit: handleSubmit,
             queryKey: ["roles"],
+            submitButtonText: isSubmitting ? "提交中..." : "保存",
+            cancelButtonText: "取消",
           }}
-          onClose={
-            controlledOpen !== undefined
-              ? onClose
-              : () => setInternalOpen(false)
-          }
+          onClose={onClose}
         />
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

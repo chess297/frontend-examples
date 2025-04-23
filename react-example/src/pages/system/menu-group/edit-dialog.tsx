@@ -1,15 +1,15 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -47,15 +47,22 @@ export default function EditMenuGroupDialog({
   open,
   onClose,
 }: EditDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isSubmitting && !isOpen) {
+      onClose();
+    }
+  };
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: menuGroup.title || "",
-      description: menuGroup.description || "",
-      icon: menuGroup.icon || "",
+      title: menuGroup?.title || "",
+      description: menuGroup?.description || "",
+      icon: menuGroup?.icon || "",
     },
   });
 
@@ -72,34 +79,39 @@ export default function EditMenuGroupDialog({
 
   // 提交表单
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const updateData: UpdateMenuGroupRequest = {
-        title: values.title,
-        description: values.description || "",
-        icon: values.icon || "",
-        menus: menuGroup.menus?.map((menu) => menu.id) || [],
-      };
+    setIsSubmitting(true);
 
-      await api.update(menuGroup.id, updateData);
-      toast.success("菜单分组更新成功");
-      queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
-      onClose();
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "更新菜单分组失败，请重试";
-      toast.error(errorMessage);
-    }
+    const updateData: UpdateMenuGroupRequest = {
+      title: values.title,
+      description: values.description || "",
+      icon: values.icon || "",
+      menus: menuGroup.menus?.map((menu) => menu.id) || [],
+    };
+
+    await api
+      .update(menuGroup.id, updateData)
+      .then(() => {
+        toast.success("菜单分组更新成功");
+        queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
+        onClose();
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "更新菜单分组失败，请重试";
+        toast.error(errorMessage);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>编辑菜单分组</AlertDialogTitle>
-          <AlertDialogDescription>
-            修改菜单分组的信息和关联。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>编辑菜单分组</DialogTitle>
+          <DialogDescription>修改菜单分组的信息和关联。</DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form
@@ -152,17 +164,22 @@ export default function EditMenuGroupDialog({
               )}
             />
 
-            <AlertDialogFooter>
-              <Button variant="outline" type="button" onClick={onClose}>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 取消
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "保存中..." : "保存更改"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "保存中..." : "保存更改"}
               </Button>
-            </AlertDialogFooter>
+            </DialogFooter>
           </form>
         </Form>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

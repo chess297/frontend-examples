@@ -20,6 +20,7 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import type { MenuResponse } from "@/services/api/api";
+import { Button } from "@/components/ui/button";
 
 export default function MenuManager() {
   const queryClient = useQueryClient();
@@ -36,6 +37,7 @@ export default function MenuManager() {
   // 删除确认对话框相关状态
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [menuIdToDelete, setMenuIdToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 使用react-query获取菜单数据
   const { data, isLoading } = useQuery({
@@ -65,21 +67,27 @@ export default function MenuManager() {
   const confirmDelete = async () => {
     if (!menuIdToDelete) return;
 
-    try {
-      await api.remove(menuIdToDelete);
-      toast.success("菜单删除成功");
+    setIsDeleting(true);
 
-      // 重新获取菜单列表
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
-
-      // 重置状态
-      setMenuIdToDelete(null);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除菜单失败，请重试";
-      toast.error(errorMessage);
-    }
+    return api
+      .remove(menuIdToDelete)
+      .then(() => {
+        toast.success("菜单删除成功");
+        // 重新获取菜单列表
+        queryClient.invalidateQueries({ queryKey: ["menus"] });
+        // 重置状态
+        setMenuIdToDelete(null);
+        return true; // 返回成功状态
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "删除菜单失败，请重试";
+        toast.error(errorMessage);
+        return false; // 返回失败状态
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   // 处理搜索
@@ -159,13 +167,21 @@ export default function MenuManager() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={async (event) => {
+                event.preventDefault();
+                const success = await confirmDelete();
+                // 只有成功时才关闭对话框
+                if (success) {
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              disabled={isDeleting}
             >
-              删除
-            </AlertDialogAction>
+              {isDeleting ? "删除中..." : "删除"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

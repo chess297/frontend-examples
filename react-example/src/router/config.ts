@@ -12,6 +12,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 
 export const ROUTES = {
   HOME: "/",
+  WELCOME: "/welcome",
   AUTH: "/auth",
   SIGNUP: "/auth/signup",
   SIGNIN: "/auth/signin",

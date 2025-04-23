@@ -6,13 +6,13 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ConfigForm,
   type FormFieldConfig,
@@ -33,34 +33,47 @@ const formSchema = z.object({
 
 export default function AddMenuDialog() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      // 创建菜单数据
-      const menuData: CreateMenuRequest = {
-        title: values.title,
-        path: values.path,
-        icon: values.icon,
-        component: values.component || `/pages${values.path}`, // 默认组件路径
-        parent_id: values.parent_id || "",
-        groups: values.groups || [],
-      };
-
-      // 调用创建菜单服务
-      await api.create(menuData);
-      toast.success("菜单添加成功！");
-
-      // 重新获取菜单列表
-      queryClient.invalidateQueries({ queryKey: ["menus"] });
-
-      return true;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "添加菜单失败，请重试";
-      toast.error(errorMessage);
-      throw error;
+  const handleOpenChange = (open: boolean) => {
+    if (!isSubmitting) {
+      setIsOpen(open);
     }
+  };
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
+    // 创建菜单数据
+    const menuData: CreateMenuRequest = {
+      title: values.title,
+      path: values.path,
+      icon: values.icon,
+      component: values.component || `/pages${values.path}`, // 默认组件路径
+      parent_id: values.parent_id || "",
+      groups: values.groups || [],
+    };
+
+    // 调用创建菜单服务
+    return api
+      .create(menuData)
+      .then(() => {
+        toast.success("菜单添加成功！");
+        // 重新获取菜单列表
+        queryClient.invalidateQueries({ queryKey: ["menus"] });
+        setIsOpen(false);
+        return true;
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "添加菜单失败，请重试";
+        toast.error(errorMessage);
+        return false;
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   // 表单字段定义
@@ -97,21 +110,19 @@ export default function AddMenuDialog() {
   ];
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <Button className="flex gap-2 items-center">
           <Plus className="h-4 w-4" />
           添加菜单
         </Button>
-      </AlertDialogTrigger>
+      </DialogTrigger>
 
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>添加菜单</AlertDialogTitle>
-          <AlertDialogDescription>
-            请填写菜单信息，创建新的菜单项
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>添加菜单</DialogTitle>
+          <DialogDescription>请填写菜单信息，创建新的菜单项</DialogDescription>
+        </DialogHeader>
 
         <ConfigForm
           config={{
@@ -126,10 +137,12 @@ export default function AddMenuDialog() {
             },
             onSubmit: handleSubmit,
             queryKey: ["menus"],
+            submitButtonText: isSubmitting ? "提交中..." : "添加菜单",
+            cancelButtonText: "取消",
           }}
           onClose={() => setIsOpen(false)}
         />
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

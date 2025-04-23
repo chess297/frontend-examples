@@ -10,6 +10,7 @@ import { RoleSearchForm } from "./search-form";
 import * as api from "./api";
 import type { RoleSearchParams } from "./api";
 import Loading from "@/components/loading";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -39,6 +40,7 @@ export default function RoleManager() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleIdToDelete, setRoleIdToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 使用react-query获取角色数据
   const { data, isLoading } = useQuery({
@@ -72,23 +74,29 @@ export default function RoleManager() {
 
   // 确认删除角色
   const confirmDelete = async () => {
-    if (!roleIdToDelete) return;
+    if (!roleIdToDelete) return false;
 
-    try {
-      await api.remove(roleIdToDelete);
-      toast.success("角色删除成功");
+    setIsDeleting(true);
 
-      // 重新获取角色列表
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
-
-      // 重置状态
-      setRoleIdToDelete(null);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除角色失败，请重试";
-      toast.error(errorMessage);
-    }
+    return api
+      .remove(roleIdToDelete)
+      .then(() => {
+        toast.success("角色删除成功");
+        // 重新获取角色列表
+        queryClient.invalidateQueries({ queryKey: ["roles"] });
+        // 重置状态
+        setRoleIdToDelete(null);
+        return true; // 返回成功状态，对话框可关闭
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "删除角色失败，请重试";
+        toast.error(errorMessage);
+        return false; // 返回失败状态，对话框不关闭
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   // 处理搜索
@@ -178,12 +186,20 @@ export default function RoleManager() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <Button
+              variant="destructive"
+              onClick={async (event) => {
+                event.preventDefault();
+                const success = await confirmDelete();
+                // 只有成功时才关闭对话框
+                if (success) {
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              disabled={isDeleting}
             >
-              删除
-            </AlertDialogAction>
+              {isDeleting ? "删除中..." : "删除"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -4,14 +4,14 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -37,7 +37,14 @@ const formSchema = z.object({
 
 export default function AddMenuGroupDialog() {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isSubmitting) {
+      setOpen(isOpen);
+    }
+  };
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,46 +58,51 @@ export default function AddMenuGroupDialog() {
 
   // 提交表单
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const menuGroupData: CreateMenuGroupRequest = {
-        title: values.title,
-        description: values.description || "",
-        icon: values.icon || "",
-        menus: [],
-        permissions: [],
-      };
+    setIsSubmitting(true);
 
-      await api.create(menuGroupData);
-      toast.success("菜单分组创建成功");
+    const menuGroupData: CreateMenuGroupRequest = {
+      title: values.title,
+      description: values.description || "",
+      icon: values.icon || "",
+      menus: [],
+      permissions: [],
+    };
 
-      // 重置表单和关闭对话框
-      form.reset();
-      setOpen(false);
-
-      // 刷新菜单分组列表
-      queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "创建菜单分组失败，请重试";
-      toast.error(errorMessage);
-    }
+    await api
+      .create(menuGroupData)
+      .then(() => {
+        toast.success("菜单分组创建成功");
+        // 重置表单和关闭对话框
+        form.reset();
+        setOpen(false);
+        // 刷新菜单分组列表
+        queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "创建菜单分组失败，请重试";
+        toast.error(errorMessage);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <Button>
           <Plus className="mr-1 h-4 w-4" />
           新建菜单分组
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>创建菜单分组</AlertDialogTitle>
-          <AlertDialogDescription>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>创建菜单分组</DialogTitle>
+          <DialogDescription>
             创建一个新的菜单分组，用于组织菜单项。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form
@@ -143,21 +155,22 @@ export default function AddMenuGroupDialog() {
               )}
             />
 
-            <AlertDialogFooter>
+            <DialogFooter>
               <Button
                 variant="outline"
                 type="button"
                 onClick={() => setOpen(false)}
+                disabled={isSubmitting}
               >
                 取消
               </Button>
-              <Button type="submit">
-                {form.formState.isSubmitting ? "提交中..." : "确认创建"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "提交中..." : "确认创建"}
               </Button>
-            </AlertDialogFooter>
+            </DialogFooter>
           </form>
         </Form>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

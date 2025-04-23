@@ -21,6 +21,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 export default function MenuGroupManager() {
   const queryClient = useQueryClient();
@@ -42,6 +43,7 @@ export default function MenuGroupManager() {
   const [menuGroupToDelete, setMenuGroupToDelete] = useState<string | null>(
     null
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 使用react-query获取菜单分组数据
   const { data, isLoading } = useQuery({
@@ -77,23 +79,23 @@ export default function MenuGroupManager() {
 
   // 确认删除菜单分组
   const confirmDelete = async () => {
-    if (!menuGroupToDelete) return;
+    if (!menuGroupToDelete) return false;
 
-    try {
-      await api.remove(menuGroupToDelete);
-      toast.success("菜单分组删除成功");
+    setIsDeleting(true);
 
-      // 刷新菜单分组列表
-      queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
-
-      // 重置状态
-      setMenuGroupToDelete(null);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除菜单分组失败，请重试";
-      toast.error(errorMessage);
-    }
+    return api
+      .remove(menuGroupToDelete)
+      .then(() => {
+        toast.success("菜单分组删除成功");
+        // 刷新菜单分组列表
+        queryClient.invalidateQueries({ queryKey: ["menuGroups"] });
+        // 重置状态
+        setMenuGroupToDelete(null);
+        return true; // 返回成功状态，对话框可关闭
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   // 处理搜索
@@ -183,13 +185,21 @@ export default function MenuGroupManager() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={async (event) => {
+                event.preventDefault();
+                const success = await confirmDelete();
+                // 只有成功时才关闭对话框
+                if (success) {
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              disabled={isDeleting}
             >
-              删除
-            </AlertDialogAction>
+              {isDeleting ? "删除中..." : "删除"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

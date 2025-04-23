@@ -21,6 +21,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 export default function PermissionManager() {
   const queryClient = useQueryClient();
@@ -42,6 +43,7 @@ export default function PermissionManager() {
   const [permissionToDelete, setPermissionToDelete] = useState<string | null>(
     null
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 使用react-query获取权限数据
   const { data, isLoading } = useQuery({
@@ -78,23 +80,29 @@ export default function PermissionManager() {
 
   // 确认删除权限
   const confirmDelete = async () => {
-    if (!permissionToDelete) return;
+    if (!permissionToDelete) return false;
 
-    try {
-      await api.remove(permissionToDelete);
-      toast.success("权限删除成功");
+    setIsDeleting(true);
 
-      // 刷新权限列表
-      queryClient.invalidateQueries({ queryKey: ["permissions"] });
-
-      // 重置状态
-      setPermissionToDelete(null);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除权限失败，请重试";
-      toast.error(errorMessage);
-    }
+    return api
+      .remove(permissionToDelete)
+      .then(() => {
+        toast.success("权限删除成功");
+        // 刷新权限列表
+        queryClient.invalidateQueries({ queryKey: ["permissions"] });
+        // 重置状态
+        setPermissionToDelete(null);
+        return true; // 返回成功状态，对话框可关闭
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "删除权限失败，请重试";
+        toast.error(errorMessage);
+        return false; // 返回失败状态，对话框不关闭
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   // 处理搜索
@@ -184,13 +192,21 @@ export default function PermissionManager() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={async (event) => {
+                event.preventDefault();
+                const success = await confirmDelete();
+                // 只有成功时才关闭对话框
+                if (success) {
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              disabled={isDeleting}
             >
-              删除
-            </AlertDialogAction>
+              {isDeleting ? "删除中..." : "删除"}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -3,14 +3,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -42,7 +42,14 @@ const formSchema = z.object({
 
 export default function AddDialog() {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isSubmitting) {
+      setOpen(isOpen);
+    }
+  };
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -57,27 +64,32 @@ export default function AddDialog() {
 
   // 提交表单
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const permissionData: CreatePermissionDto = {
-        name: values.name,
-        description: values.description,
-        resource: values.resource,
-        actions: values.actions as PermissionAction[],
-      };
+    setIsSubmitting(true);
 
-      await api.create(permissionData);
-      toast.success("权限创建成功");
+    const permissionData: CreatePermissionDto = {
+      name: values.name,
+      description: values.description,
+      resource: values.resource,
+      actions: values.actions as PermissionAction[],
+    };
 
-      // 重置表单和关闭对话框
-      form.reset();
-      setOpen(false);
-
-      // 刷新权限列表
-      queryClient.invalidateQueries({ queryKey: ["permissions"] });
-    } catch (error) {
-      console.error("创建权限失败:", error);
-      toast.error("创建权限失败");
-    }
+    await api
+      .create(permissionData)
+      .then(() => {
+        toast.success("权限创建成功");
+        // 重置表单和关闭对话框
+        form.reset();
+        setOpen(false);
+        // 刷新权限列表
+        queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      })
+      .catch((error) => {
+        console.error("创建权限失败:", error);
+        toast.error("创建权限失败");
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const availableActions = [
@@ -89,20 +101,20 @@ export default function AddDialog() {
   ];
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <Button>
           <Plus className="mr-1 h-4 w-4" />
           新建权限
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-[425px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>新建权限</AlertDialogTitle>
-          <AlertDialogDescription>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>新建权限</DialogTitle>
+          <DialogDescription>
             创建一个新的权限，填写下面的表单并提交。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form
@@ -204,19 +216,22 @@ export default function AddDialog() {
               )}
             />
 
-            <AlertDialogFooter>
+            <DialogFooter>
               <Button
                 variant="outline"
                 type="button"
                 onClick={() => setOpen(false)}
+                disabled={isSubmitting}
               >
                 取消
               </Button>
-              <Button type="submit">创建</Button>
-            </AlertDialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "提交中..." : "创建"}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

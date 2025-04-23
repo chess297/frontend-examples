@@ -3,13 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -48,7 +48,14 @@ export default function EditDialog({
   open,
   onClose,
 }: EditDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isSubmitting && !isOpen) {
+      onClose();
+    }
+  };
 
   // 初始化表单
   const form = useForm<z.infer<typeof formSchema>>({
@@ -79,27 +86,32 @@ export default function EditDialog({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!permission) return;
 
-    try {
-      const permissionData: UpdatePermissionDto = {
-        name: values.name,
-        description: values.description,
-        resource: values.resource,
-        actions: values.actions as PermissionAction[],
-        roles: values.roles || [],
-      };
+    setIsSubmitting(true);
 
-      await api.update(permission.id, permissionData);
-      toast.success("权限更新成功");
+    const permissionData: UpdatePermissionDto = {
+      name: values.name,
+      description: values.description,
+      resource: values.resource,
+      actions: values.actions as PermissionAction[],
+      roles: values.roles || [],
+    };
 
-      // 关闭对话框
-      onClose();
-
-      // 刷新权限列表
-      queryClient.invalidateQueries({ queryKey: ["permissions"] });
-    } catch (error) {
-      console.error("更新权限失败:", error);
-      toast.error("更新权限失败");
-    }
+    await api
+      .update(permission.id, permissionData)
+      .then(() => {
+        toast.success("权限更新成功");
+        // 关闭对话框
+        onClose();
+        // 刷新权限列表
+        queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      })
+      .catch((error) => {
+        console.error("更新权限失败:", error);
+        toast.error("更新权限失败");
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const availableActions = [
@@ -111,14 +123,14 @@ export default function EditDialog({
   ];
 
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-[425px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>编辑权限</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>编辑权限</DialogTitle>
+          <DialogDescription>
             编辑权限信息，修改下面的表单并保存。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form
@@ -220,15 +232,22 @@ export default function EditDialog({
               )}
             />
 
-            <AlertDialogFooter>
-              <Button variant="outline" type="button" onClick={onClose}>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 取消
               </Button>
-              <Button type="submit">保存</Button>
-            </AlertDialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "提交中..." : "保存"}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }
