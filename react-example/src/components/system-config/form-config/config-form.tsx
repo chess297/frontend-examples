@@ -6,11 +6,8 @@ import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -102,9 +99,9 @@ export function ConfigForm<T>({ config, onClose }: ConfigFormProps<T>) {
       }
     } catch (error) {
       console.error("表单提交错误:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "提交表单失败，请重试";
-      toast.error(errorMessage);
+      // const errorMessage =
+      //   error instanceof Error ? error.message : "提交表单失败，请重试";
+      // toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -238,12 +235,17 @@ export function ConfigForm<T>({ config, onClose }: ConfigFormProps<T>) {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {config.fields.map(renderFormField)}
 
-        <AlertDialogFooter className="pt-6">
-          <AlertDialogCancel onClick={onClose} disabled={isSubmitting}>
+        <DialogFooter className="pt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             {config.cancelButtonText || "取消"}
-          </AlertDialogCancel>
+          </Button>
 
-          <AlertDialogAction type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -252,8 +254,8 @@ export function ConfigForm<T>({ config, onClose }: ConfigFormProps<T>) {
             ) : (
               config.submitButtonText || "确认"
             )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
+          </Button>
+        </DialogFooter>
       </form>
     </Form>
   );

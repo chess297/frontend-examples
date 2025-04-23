@@ -2,17 +2,17 @@ import { useState } from "react";
 import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ConfigForm,
   type FormFieldConfig,
@@ -35,13 +35,16 @@ const formSchema = z
     path: ["confirm_password"],
   });
 
+// 表单数据类型
 type FormSchema = z.infer<typeof formSchema>;
 
 export default function AddUserDialog() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const handleSubmit = async (values: FormSchema) => {
+    setIsSubmitting(true);
     // 创建用户数据
     const userData: CreateUserRequest = {
       username: values.username,
@@ -56,11 +59,16 @@ export default function AddUserDialog() {
     };
 
     // 调用创建用户服务
-    await api.create(userData);
+    await api.create(userData).finally(() => {
+      setIsSubmitting(false);
+    });
     toast.success("用户添加成功！");
 
     // 重新获取用户列表
     queryClient.invalidateQueries({ queryKey: ["users"] });
+
+    // 关闭对话框
+    setIsOpen(false);
   };
 
   // 表单字段定义
@@ -82,14 +90,14 @@ export default function AddUserDialog() {
     {
       name: "password",
       label: "密码",
-      type: "text",
+      type: "password",
       placeholder: "请输入密码",
       required: true,
     },
     {
       name: "confirm_password",
       label: "确认密码",
-      type: "text",
+      type: "password",
       placeholder: "请再次输入密码",
       required: true,
     },
@@ -101,24 +109,30 @@ export default function AddUserDialog() {
     },
   ];
 
+  const handleOpenChange = (open: boolean) => {
+    if (!isSubmitting) {
+      setIsOpen(open);
+    }
+  };
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <Button className="flex gap-2 items-center">
           <Plus className="h-4 w-4" />
           添加用户
         </Button>
-      </AlertDialogTrigger>
+      </DialogTrigger>
 
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>添加用户</AlertDialogTitle>
-          <AlertDialogDescription>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>添加用户</DialogTitle>
+          <DialogDescription>
             请填写用户信息，创建新的系统用户
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <ConfigForm<FormSchema>
+        <ConfigForm
           config={{
             title: "添加用户",
             fields: formFields,
@@ -132,10 +146,12 @@ export default function AddUserDialog() {
             },
             onSubmit: handleSubmit,
             queryKey: ["users"],
+            submitButtonText: isSubmitting ? "提交中..." : "添加用户",
+            cancelButtonText: "取消",
           }}
           onClose={() => setIsOpen(false)}
         />
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,17 +1,15 @@
 import { useState } from "react";
 import * as z from "zod";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Key } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ConfigForm,
   type FormFieldConfig,
@@ -43,19 +41,34 @@ export default function ResetPasswordDialog({
   open,
   onClose,
 }: ResetPasswordDialogProps) {
-  // const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    if (!isSubmitting) {
+      onClose();
+    }
+  };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      // 调用重置密码服务
-      await api.resetPassword(userId, values.password);
-      toast.success(`用户 ${username} 的密码已重置成功！`);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "重置密码失败，请重试";
-      toast.error(errorMessage);
-      throw error;
-    }
+    setIsSubmitting(true);
+
+    // 调用重置密码服务
+    await api
+      .resetPassword(userId, values.password)
+      .then(() => {
+        toast.success(`用户 ${username} 的密码已重置成功！`);
+        onClose();
+        return true;
+      })
+      .catch((error) => {
+        const errorMessage =
+          error instanceof Error ? error.message : "重置密码失败，请重试";
+        toast.error(errorMessage);
+        return false;
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   // 表单字段定义
@@ -68,7 +81,7 @@ export default function ResetPasswordDialog({
       required: true,
     },
     {
-      name: "confirmPassword",
+      name: "confirm_password",
       label: "确认新密码",
       type: "password",
       placeholder: "请再次输入新密码",
@@ -77,14 +90,14 @@ export default function ResetPasswordDialog({
   ];
 
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-[500px]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>重置密码</AlertDialogTitle>
-          <AlertDialogDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>重置密码</DialogTitle>
+          <DialogDescription>
             为用户 <strong>{username}</strong> 设置新密码
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <ConfigForm
           config={{
@@ -93,15 +106,15 @@ export default function ResetPasswordDialog({
             validationSchema: formSchema,
             defaultValues: {
               password: "",
-              confirmPassword: "",
+              confirm_password: "",
             },
             onSubmit: handleSubmit,
-            submitButtonText: "重置密码",
+            submitButtonText: isSubmitting ? "提交中..." : "重置密码",
             cancelButtonText: "取消",
           }}
           onClose={onClose}
         />
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }
