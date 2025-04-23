@@ -9,15 +9,24 @@ http.instance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response.status === 401) {
-      toSignin();
-    } else if (error.response.status === 400) {
-      toast.error(error.response.data.message);
-    } else if (error.response.status === 503) {
-      toast.error("系统还没初始化，请先注册管理员账号");
-      // 重定向到初始化页面
-      window.location.href = ROUTES.SYSTEM_INIT;
+    switch (error.response.status) {
+      case 400:
+      case 403:
+        toast.error("没有权限访问该资源");
+        break;
+      case 503:
+        toast.error("系统还没初始化，请先注册管理员账号");
+        // 重定向到初始化页面
+        window.location.href = ROUTES.SYSTEM_INIT;
+        break;
+      case 401:
+        toSignin();
+        break;
+      default:
+        // toSignin();
+        break;
     }
+
     throw error;
   }
 );

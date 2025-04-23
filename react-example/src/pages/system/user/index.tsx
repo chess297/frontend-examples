@@ -22,6 +22,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 export default function UserManager() {
   const queryClient = useQueryClient();
@@ -95,24 +96,24 @@ export default function UserManager() {
   };
 
   // 确认删除用户
-  const confirmDelete = async () => {
-    if (!userToDelete) return;
-
-    try {
-      await api.remove(userToDelete);
-      toast.success("用户删除成功");
-
-      // 刷新用户列表
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-
-      // 重置状态
-      setUserToDelete(null);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除用户失败，请重试";
-      toast.error(errorMessage);
+  const confirmDelete: React.MouseEventHandler<HTMLButtonElement> = async (
+    event
+  ) => {
+    if (!userToDelete) {
+      event.preventDefault();
+      return;
     }
+
+    await api
+      .remove(userToDelete)
+      .then(() => {
+        toast.success("用户删除成功");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+        setUserToDelete(null);
+      })
+      .catch(() => {
+        event.preventDefault();
+      });
   };
 
   // 处理搜索
@@ -213,12 +214,12 @@ export default function UserManager() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive hover:bg-destructive/90"
             >
               删除
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

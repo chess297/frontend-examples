@@ -53,7 +53,7 @@ export async function update(id: string, data: UpdateTaskRequest) {
  * 删除
  */
 export async function remove(id: string) {
-  const response = await api.removeUser(id, { id, ids: [] });
+  const response = await api.removeUser(id);
   return response;
 }
 

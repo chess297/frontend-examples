@@ -52,6 +52,7 @@ export default function AddUserDialog() {
       country_code: "",
       address: "",
       role_ids: [],
+      avatar_url: "",
     };
 
     // 调用创建用户服务
@@ -126,7 +127,7 @@ export default function AddUserDialog() {
               username: "",
               email: "",
               password: "",
-              confirmPassword: "",
+              confirm_password: "",
               is_active: true,
             },
             onSubmit: handleSubmit,

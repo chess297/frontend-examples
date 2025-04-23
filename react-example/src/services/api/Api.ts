@@ -211,7 +211,7 @@ export interface SigninResponse {
    * 用户ID
    * @example "1"
    */
-  user_id?: string;
+  id?: string;
   /**
    * 用户邮箱
    * @example "user@example.com"
@@ -227,10 +227,7 @@ export interface SigninResponse {
    * @example false
    */
   is_admin?: boolean;
-  /**
-   * 用户权限列表
-   * @example ["users:read","users:write"]
-   */
+  /** 用户权限列表 */
   permissions?: string[];
 }
 
@@ -1275,7 +1272,7 @@ export class Api<SecurityDataType extends unknown> {
    */
   removeUser = (
     id: string,
-    data: RemoveUserRequest,
+    data?: RemoveUserRequest,
     params: RequestParams = {},
   ) =>
     this.http.request<void, any>({
